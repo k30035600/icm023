@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KB 고객관리</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Malgun Gothic', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    .header {
+      background: #1e3a5f;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+    .body {
+      flex: 1;
+      display: flex;
+      gap: 0;
+      min-height: 0;
+    }
+    .container {
+      flex: 1;
+      min-width: 0;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      background: #fafafa;
+    }
+    .container h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #333; }
+    .container input[type="file"] { margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .table-wrap { flex: 1; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; }
+    #left-container .table-wrap:first-of-type { flex: 0 0 auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+    th { background: #2c5282; color: #fff; white-space: nowrap; position: sticky; top: 0; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    /* DB고객 세부내용 양식 테이블 */
+    .detail-form { border: 1px solid #333; font-size: 0.8rem; }
+    .detail-form td, .detail-form th { border: 1px dotted #999; padding: 0.35rem 0.5rem; vertical-align: middle; }
+    .detail-form .section-border { border: 1px solid #333; }
+    .detail-form .main-title { font-weight: bold; font-size: 1rem; text-align: center; background: #f0f4f8; border: 1px solid #333; width: 5em; }
+    .detail-form .value-placeholder { color: #888; font-size: 0.75em; }
+    .detail-form .label-cell-empty { background: #f8f9fa; border: 1px solid #333; }
+    .detail-form .detail-input { width: 100%; min-width: 0; padding: 0.2rem 0.3rem; font-size: inherit; border: 1px solid #ccc; }
+    .detail-form .radio-inline { display: inline-block; margin-right: 0.75rem; font-weight: normal; white-space: nowrap; }
+    .detail-form .radio-inline input { margin-right: 0.25rem; vertical-align: middle; }
+    .detail-form .label-cell { background: #e8eef4; font-weight: 500; white-space: nowrap; width: 1%; }
+    .detail-form .value-cell { background: #fff; min-width: 4em; }
+    .detail-form .section-label { background: #dde4ec; font-weight: bold; text-align: center; }
+    .detail-form .action-header { background: #e8eef4; text-align: center; }
+    .detail-form .action-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #2c5282; background: #fff; border-radius: 3px; }
+    .detail-form .action-btn:hover { background: #e8eef4; }
+    .detail-form .action-sub { font-size: 0.75rem; text-align: center; color: #555; }
+    .detail-form .detail-amount { text-align: right; }
+    #db-agree-toggle { min-width: 4.5em; }
+    .detail-form select.detail-input { cursor: pointer; }
+    .footer {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .placeholder { color: #718096; padding: 1rem; text-align: center; }
+    /* 정보 테이블: 박스 너비에 맞춤, 말줄임, 폰트 1단계 축소 */
+    #info-table { width: 100%; min-width: 0; display: block; }
+    #info-table table { table-layout: fixed; width: 100%; font-size: 0.75rem; min-width: 0; }
+    #info-table table td,
+    #info-table table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #info-table table tbody tr { cursor: pointer; }
+    #info-table table tbody tr:hover { background: #e6f0fa; }
+    #prebargaining-table table { table-layout: fixed; width: 100%; font-size: 0.75rem; }
+    #prebargaining-table table td,
+    #prebargaining-table table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #right-container { display: flex; flex-direction: column; min-height: 0; }
+    #right-container .table-wrap-half { flex: 1; min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; }
+    #insurance-table table { table-layout: fixed; width: 100%; font-size: 0.75rem; }
+    #insurance-table table td,
+    #insurance-table table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <header class="header">KB 고객관리</header>
+
+  <main class="body">
+    <!-- 테이블 종류: (1) detail-form DB고객 세부내용 입력폼 (2) info-table kb023_information.xlsx (3) prebargaining-table kb023_prebargaining.xlsx -->
+    <section class="container" id="left-container">
+      <div class="table-wrap">
+        <table class="detail-form">
+          <tbody>
+            <tr>
+              <td colspan="7" class="main-title section-border">DB고객 세부내용</td>
+              <td colspan="2" class="section-border" style="vertical-align: middle; text-align: right; background: #f0f4f8; border-left: none;">
+                <select id="detail-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;">
+                  <option value="조회">조회</option>
+                  <option value="입력">입력</option>
+                  <option value="수정">수정</option>
+                  <option value="삭제">삭제</option>
+                </select>
+                <button type="button" id="detail-complete-btn" class="detail-form action-btn">완료</button>
+              </td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="section-label">배정구분</td>
+              <td class="label-cell">배정일</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="배정일" placeholder="yyyy/mm/dd" maxlength="10" /></td>
+              <td class="label-cell">종료일</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="종료일" placeholder="yyyy/mm/dd" maxlength="10" /></td>
+              <td class="label-cell">DB종류</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="DB종류" placeholder="DB종류" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" placeholder="LMS 동의" value="LMS 동의" /></td>
+              <td class="value-cell" style="text-align: center;">
+                <button type="button" id="db-agree-toggle" class="detail-form action-btn" data-value="동의">동의</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">가능상품</td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="가능상품" placeholder="가능상품" /></td>
+              <td class="label-cell">타겟상품</td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="타겟상품" placeholder="타겟상품" /></td>
+            </tr>
+            <tr>
+              <td rowspan="2" class="section-label">계약</td>
+              <td class="label-cell">계약자명</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="계약자명" placeholder="계약자명" /></td>
+              <td class="label-cell">주민등록번호</td>
+              <td class="value-cell"><input type="hidden" id="jumin-full" /><input type="text" id="jumin-input" class="detail-input" data-field="주민등록번호" placeholder="주민등록번호" maxlength="14" autocomplete="off" /></td>
+              <td class="label-cell">연락처</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="연락처" placeholder="연락처" /></td>
+              <td class="label-cell">피보험자</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="피보험자" placeholder="피보험자" /></td>
+            </tr>
+            <tr>
+              <td class="label-cell">직업</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="직업" placeholder="직업" /></td>
+              <td class="label-cell">주소</td>
+              <td class="value-cell" colspan="5"><input type="text" class="detail-input" data-field="주소" placeholder="주소" /></td>
+            </tr>
+            <tr>
+              <td rowspan="4" class="section-label">계약사항</td>
+              <td class="label-cell">상품종류</td>
+              <td class="value-cell">
+                <select id="detail-product-type" class="detail-input" data-field="상품종류">
+                  <option value="">선택</option>
+                </select>
+              </td>
+              <td class="label-cell">상품명</td>
+              <td class="value-cell" colspan="5">
+                <select id="detail-product-name" class="detail-input" data-field="상품명">
+                  <option value="">선택</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">증권번호</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="증권번호" placeholder="증권번호" /></td>
+              <td class="label-cell">납입만기</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="납입만기" placeholder="yyyy/mm/dd" maxlength="10" /></td>
+              <td class="label-cell">주요담보</td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주요담보" placeholder="주요담보" /></td>
+            </tr>
+            <tr>
+              <td class="label-cell">월보험료</td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="월보험료" inputmode="numeric" placeholder="0" /></td>
+              <td class="label-cell">납입방법</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="납입방법" placeholder="이체/카드" /></td>
+              <td class="label-cell">납입보험료</td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="납입보험료" inputmode="numeric" placeholder="0" /></td>
+              <td class="label-cell">총보험료</td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="총보험료" inputmode="numeric" placeholder="0" /></td>
+            </tr>
+            <tr>
+              <td class="label-cell">해지환급금</td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="해지환급금" inputmode="numeric" placeholder="0" /></td>
+              <td class="label-cell">대출금</td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="대출금" inputmode="numeric" placeholder="0" /></td>
+              <td class="label-cell">주의사항</td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주의사항" placeholder="주의사항" /></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3 style="margin-top: 1rem;">information</h3>
+      <div class="table-wrap">
+        <div id="info-table" class="placeholder">kb023_information.xlsx 자동 로드됩니다.</div>
+      </div>
+    </section>
+    <section class="container" id="right-container">
+      <h3>insurance</h3>
+      <div class="table-wrap-half">
+        <div id="insurance-table" class="placeholder">information에서 행을 선택하면 계약자명/주민등록번호 기준 kb023_insurance 데이터가 표시됩니다.</div>
+      </div>
+      <h3 style="margin-top: 0.5rem;">prebargaining</h3>
+      <div class="table-wrap-half">
+        <div id="prebargaining-table" class="placeholder">information에서 행을 선택하면 계약자명/주민등록번호 기준 kb023_prebargaining 데이터가 올림차순으로 표시됩니다.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">KB 고객관리 &middot; 세부내용 관리</footer>
+
+  <script>
+    function formatCellForInfo(cell) {
+      if (cell == null || cell === '') return '';
+      if (typeof cell === 'number') {
+        if (cell >= 1 && cell < 3000000) {
+          var d = XLSX.SSF.parse_date_code(cell);
+          if (d && d.y >= 1900) {
+            var y = String(d.y).slice(-2);
+            var m = String(d.m).padStart(2, '0');
+            var day = String(d.d).padStart(2, '0');
+            return y + '/' + m + '/' + day;
+          }
+        }
+        return String(cell);
+      }
+      if (cell instanceof Date) {
+        var y = String(cell.getFullYear()).slice(-2);
+        var m = String(cell.getMonth() + 1).padStart(2, '0');
+        var d = String(cell.getDate()).padStart(2, '0');
+        return y + '/' + m + '/' + d;
+      }
+      var s = String(cell);
+      var match = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (match) return match[1].slice(-2) + '/' + match[2].padStart(2, '0') + '/' + match[3].padStart(2, '0');
+      return s.replace(/</g, '&lt;');
+    }
+    function renderSheetToDiv(workbook, targetId) {
+      var el = document.getElementById(targetId);
+      if (!workbook || !workbook.SheetNames || !workbook.SheetNames.length) {
+        el.innerHTML = '<div class="placeholder">유효한 시트가 없습니다.</div>';
+        return;
+      }
+      var sheetName = workbook.SheetNames[0];
+      var sheet = workbook.Sheets[sheetName];
+      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!data || data.length === 0) {
+        el.innerHTML = '<div class="placeholder">데이터가 없습니다.</div>';
+        return;
+      }
+      var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
+      var rows = data.slice(1);
+      var isInfo = targetId === 'info-table';
+      if (isInfo) window._infoTableData = { headers: headers, rows: rows };
+      var html = '<table><thead><tr>';
+      headers.forEach(function (h) {
+        var text = (h != null ? String(h).replace(/</g, '&lt;') : '');
+        html += '<th>' + text + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+      rows.forEach(function (row, rowIndex) {
+        html += '<tr data-row-index="' + rowIndex + '">';
+        headers.forEach(function (_, i) {
+          var cell = row[i];
+          var text = (cell != null ? String(cell).replace(/</g, '&lt;') : '');
+          if (isInfo) {
+            text = formatCellForInfo(cell);
+            /* information 테이블에서는 주민번호/주민등록번호 컬럼 마스킹하지 않음, 그대로 표시 */
+          } else if (cell != null && cell !== '') {
+            text = String(cell).replace(/</g, '&lt;');
+          }
+          html += '<td>' + text + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+      if (isInfo && typeof window._onInfoRowClick === 'function') {
+        el.querySelector('tbody').addEventListener('click', function (e) {
+          var tr = e.target && e.target.closest('tbody tr');
+          if (tr && tr.dataset.rowIndex !== undefined) window._onInfoRowClick(parseInt(tr.dataset.rowIndex, 10));
+        });
+      }
+    }
+
+    function loadFile(file, targetId) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          var ab = e.target.result;
+          var wb = XLSX.read(ab, { type: 'array' });
+          renderSheetToDiv(wb, targetId);
+        } catch (err) {
+          document.getElementById(targetId).innerHTML =
+            '<div class="placeholder">파일을 읽을 수 없습니다: ' + err.message + '</div>';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    (function () {
+      var juminInput = document.getElementById('jumin-input');
+      var juminFull = document.getElementById('jumin-full');
+      function maskJumin(val) {
+        var digits = (val || '').replace(/\D/g, '');
+        if (digits.length <= 6) return digits;
+        if (digits.length <= 7) return digits.slice(0, 6) + '-' + digits[6];
+        return digits.slice(0, 6) + '-' + digits[6] + '******';
+      }
+      function unmaskJumin(val) {
+        return (val || '').replace(/\D/g, '');
+      }
+      juminInput.addEventListener('focus', function () {
+        var full = juminFull.value || unmaskJumin(juminInput.value);
+        full = full.slice(0, 13);
+        juminInput.value = full.length <= 6 ? full : full.slice(0, 6) + '-' + full.slice(6, 7) + (full.length > 7 ? full.slice(7, 13) : '');
+      });
+      juminInput.addEventListener('blur', function () {
+        var raw = unmaskJumin(juminInput.value).slice(0, 13);
+        juminFull.value = raw;
+        juminInput.value = maskJumin(raw);
+      });
+    })();
+
+    // kb023_information.xlsx 자동 로드 (DB고객 세부내용 아래 테이블)
+    function tryAutoLoadInfo() {
+      fetch('kb023_information.xlsx')
+        .then(function (r) { return r.arrayBuffer(); })
+        .then(function (ab) {
+          var wb = XLSX.read(ab, { type: 'array' });
+          renderSheetToDiv(wb, 'info-table');
+        })
+        .catch(function () {});
+    }
+    tryAutoLoadInfo();
+
+    // kb023_insurance.xlsx 로드 후 키(계약자명/주민등록번호)로 조회용 저장
+    window._insuranceData = null;
+    function tryAutoLoadInsurance() {
+      fetch('kb023_insurance.xlsx')
+        .then(function (r) { return r.arrayBuffer(); })
+        .then(function (ab) {
+          var wb = XLSX.read(ab, { type: 'array' });
+          if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          if (!data || data.length < 2) return;
+          var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
+          var rows = data.slice(1).map(function (row) {
+            var o = {};
+            headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
+            return o;
+          });
+          window._insuranceData = { headers: headers, rows: rows };
+        })
+        .catch(function () {});
+    }
+    tryAutoLoadInsurance();
+
+    // kb023_prebargaining.xlsx 로드 (선택 계약자명/주민등록번호 기준 올림차순 출력용)
+    window._prebargainingData = null;
+    function tryAutoLoadPrebargaining() {
+      fetch('kb023_prebargaining.xlsx')
+        .then(function (r) { return r.arrayBuffer(); })
+        .then(function (ab) {
+          var wb = XLSX.read(ab, { type: 'array' });
+          if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          if (!data || data.length < 2) return;
+          var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
+          var rows = data.slice(1).map(function (row) {
+            var o = {};
+            headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
+            return o;
+          });
+          window._prebargainingData = { headers: headers, rows: rows };
+        })
+        .catch(function () {});
+    }
+    tryAutoLoadPrebargaining();
+
+    function renderInsuranceTable(headers, rows) {
+      var el = document.getElementById('insurance-table');
+      if (!el) return;
+      if (!headers || headers.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자/주민번호의 보험 데이터가 없습니다.</div>';
+        return;
+      }
+      if (!rows || rows.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자/주민번호의 보험 데이터가 없습니다.</div>';
+        return;
+      }
+      var html = '<table><thead><tr>';
+      headers.forEach(function (h) {
+        html += '<th>' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+      rows.forEach(function (row) {
+        html += '<tr>';
+        headers.forEach(function (h) {
+          var cell = row[h] != null ? row[h] : '';
+          var text = typeof cell === 'number' && cell >= 1 && cell < 3000000
+            ? (function () {
+                var d = XLSX.SSF.parse_date_code(cell);
+                if (d && d.y >= 1900) return d.y + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+                return String(cell);
+              })()
+            : String(cell).replace(/</g, '&lt;');
+          html += '<td>' + text + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    function renderPrebargainingTable(headers, rows) {
+      var el = document.getElementById('prebargaining-table');
+      if (!el) return;
+      if (!headers || headers.length === 0 || !rows || rows.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자/주민번호의 사전교섭 데이터가 없습니다.</div>';
+        return;
+      }
+      var html = '<table><thead><tr>';
+      headers.forEach(function (h) {
+        html += '<th>' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+      rows.forEach(function (row) {
+        html += '<tr>';
+        headers.forEach(function (h, i) {
+          var cell = row[h] != null ? row[h] : '';
+          var text = typeof cell === 'number' && cell >= 1 && cell < 3000000
+            ? (function () {
+                var d = XLSX.SSF.parse_date_code(cell);
+                if (d && d.y >= 1900) return d.y + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+                return String(cell);
+              })()
+            : String(cell).replace(/</g, '&lt;');
+          html += '<td>' + text + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    // kb023_products.xlsx 로드 (보험사 kblife 기준 상품종류/상품명 드롭다운)
+    window._productsData = null;
+    function tryAutoLoadProducts() {
+      fetch('kb023_products.xlsx')
+        .then(function (r) { return r.arrayBuffer(); })
+        .then(function (ab) {
+          var wb = XLSX.read(ab, { type: 'array' });
+          if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          if (!data || data.length < 2) return;
+          var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
+          var rows = data.slice(1).map(function (row) {
+            var o = {};
+            headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
+            return o;
+          });
+          window._productsData = { headers: headers, rows: rows };
+          updateProductTypeOptions();
+        })
+        .catch(function () {});
+    }
+    tryAutoLoadProducts();
+
+    var KBLIFE = 'kblife';
+    function updateProductTypeOptions() {
+      var sel = document.getElementById('detail-product-type');
+      if (!sel) return;
+      var products = window._productsData;
+      var html = '<option value="">선택</option>';
+      if (products && products.rows && products.rows.length) {
+        var set = {};
+        products.rows.forEach(function (r) {
+          var ins = (r['보험사'] != null ? String(r['보험사']) : '').trim();
+          if (ins.toLowerCase() !== KBLIFE) return;
+          var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
+          if (kind && !set[kind]) { set[kind] = true; html += '<option value="' + kind.replace(/"/g, '&quot;') + '">' + kind.replace(/</g, '&lt;') + '</option>'; }
+        });
+      }
+      sel.innerHTML = html;
+      updateProductNameOptions(sel.value);
+    }
+    function updateProductNameOptions(productType) {
+      var sel = document.getElementById('detail-product-name');
+      if (!sel) return;
+      var products = window._productsData;
+      var html = '<option value="">선택</option>';
+      if (products && products.rows && products.rows.length && productType) {
+        var productTypeStr = String(productType).trim();
+        products.rows.forEach(function (r) {
+          var ins = (r['보험사'] != null ? String(r['보험사']) : '').trim();
+          if (ins.toLowerCase() !== KBLIFE) return;
+          var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
+          if (kind !== productTypeStr) return;
+          var name = (r['상품명'] != null ? String(r['상품명']) : '').trim();
+          if (name) html += '<option value="' + name.replace(/"/g, '&quot;') + '">' + name.replace(/</g, '&lt;') + '</option>';
+        });
+      }
+      sel.innerHTML = html;
+    }
+
+    (function () {
+      var modeSel = document.getElementById('detail-mode');
+      var productTypeSel = document.getElementById('detail-product-type');
+      var productNameSel = document.getElementById('detail-product-name');
+      function setProductDropdownsEnabled(enabled) {
+        if (productTypeSel) productTypeSel.disabled = !enabled;
+        if (productNameSel) productNameSel.disabled = !enabled;
+        if (!enabled) {
+          if (productTypeSel) productTypeSel.selectedIndex = 0;
+          if (productNameSel) { productNameSel.innerHTML = '<option value="">선택</option>'; productNameSel.selectedIndex = 0; }
+        }
+      }
+      function setDetailFormSectionsEnabled(enabled) {
+        var form = document.querySelector('.detail-form');
+        if (!form) return;
+        form.querySelectorAll('input, select, button').forEach(function (el) {
+          if (el.id === 'detail-mode' || el.id === 'detail-complete-btn') return;
+          el.disabled = !enabled;
+        });
+      }
+      if (modeSel) {
+        modeSel.addEventListener('change', function () {
+          var mode = (this.value || '').trim();
+          var enable = mode === '입력' || mode === '수정';
+          setProductDropdownsEnabled(enable);
+          setDetailFormSectionsEnabled(enable);
+          if (enable) updateProductTypeOptions();
+        });
+        var initialMode = (modeSel.value || '').trim();
+        var enableInitial = initialMode === '입력' || initialMode === '수정';
+        setDetailFormSectionsEnabled(enableInitial);
+        setProductDropdownsEnabled(enableInitial);
+      }
+      if (productTypeSel) {
+        productTypeSel.addEventListener('change', function () {
+          updateProductNameOptions(this.value);
+        });
+      }
+    })();
+
+    function normalizeJumin(v) { return (v != null ? String(v) : '').replace(/\D/g, '').slice(0, 13); }
+
+    function formatAmount(num) {
+      var n = Math.floor(Number(String(num).replace(/,/g, '')));
+      if (isNaN(n) || n < 0) return '';
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    function parseAmount(s) { return String(s || '').replace(/,/g, ''); }
+
+    (function () {
+      document.querySelectorAll('.detail-form .detail-amount').forEach(function (el) {
+        el.addEventListener('focus', function () { this.value = parseAmount(this.value); });
+        el.addEventListener('blur', function () { this.value = formatAmount(this.value); });
+        el.addEventListener('input', function () {
+          var v = this.value.replace(/[^\d]/g, '');
+          if (v !== this.value) this.value = v;
+        });
+      });
+      var toggleBtn = document.getElementById('db-agree-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+          this.dataset.value = this.dataset.value === '동의' ? '부동의' : '동의';
+          this.textContent = this.dataset.value;
+        });
+      }
+    })();
+
+    function fillDetailForm(merged) {
+      if (!merged || typeof merged !== 'object') return;
+      updateProductNameOptions(merged['상품종류'] != null ? String(merged['상품종류']) : '');
+      var fieldKeys = { '주민번호': '주민등록번호' };
+      var keys = Object.keys(merged);
+      keys.forEach(function (key) {
+        var val = merged[key];
+        if (val == null) val = '';
+        else if (typeof val === 'number' && !isNaN(val)) val = String(val);
+        else val = String(val);
+        var fieldKey = fieldKeys[key] || key;
+        var el = document.querySelector('.detail-form [data-field="' + fieldKey + '"]');
+        if (!el) return;
+        if (el.tagName === 'SELECT') {
+          if (el.id === 'detail-product-type') {
+            el.value = val;
+            updateProductNameOptions(val);
+          } else if (el.id === 'detail-product-name') {
+            var opt = [].find.call(el.options, function (o) { return o.value === val; });
+            if (!opt && val) {
+              var o = document.createElement('option');
+              o.value = val;
+              o.textContent = val;
+              el.appendChild(o);
+            }
+            el.value = val;
+          } else {
+            var opt = [].find.call(el.options, function (o) { return o.value === val; });
+            el.selectedIndex = opt ? opt.index : 0;
+          }
+        } else if (el.id === 'jumin-input') {
+          document.getElementById('jumin-full').value = normalizeJumin(val);
+          var raw = normalizeJumin(val);
+          el.value = raw.length <= 6 ? raw : raw.slice(0, 6) + '-' + raw[6] + (raw.length > 7 ? '******' : '');
+        } else if (el.classList.contains('detail-amount')) {
+          el.value = formatAmount(val);
+        } else {
+          el.value = val;
+        }
+      });
+    }
+
+    window._onInfoRowClick = function (rowIndex) {
+      var info = window._infoTableData;
+      if (!info || !info.rows || !info.rows[rowIndex]) return;
+      var headers = info.headers;
+      var rowArr = info.rows[rowIndex];
+      var infoRow = {};
+      headers.forEach(function (h, i) { infoRow[h] = rowArr[i] != null ? rowArr[i] : ''; });
+      var nameKey = (infoRow['계약자명'] != null ? String(infoRow['계약자명']) : '').trim();
+      var juminVal = infoRow['주민등록번호'] != null ? infoRow['주민등록번호'] : infoRow['주민번호'];
+      var juminKey = normalizeJumin(juminVal);
+      var insurance = window._insuranceData;
+      var insuranceRows = [];
+      var insuranceRow = null;
+      if (insurance && insurance.rows && insurance.rows.length) {
+        insuranceRows = insurance.rows.filter(function (r) {
+          var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
+          var j = normalizeJumin(r['주민등록번호'] != null ? r['주민등록번호'] : r['주민번호']);
+          return n === nameKey && j === juminKey;
+        });
+        insuranceRow = insuranceRows[0] || null;
+      }
+      var merged = Object.assign({}, infoRow, insuranceRow || {});
+      fillDetailForm(merged);
+
+      if (insurance && insurance.headers) {
+        renderInsuranceTable(insurance.headers, insuranceRows);
+      } else {
+        var insEl = document.getElementById('insurance-table');
+        if (insEl) insEl.innerHTML = '<div class="placeholder">kb023_insurance.xlsx를 로드한 후 선택하세요.</div>';
+      }
+
+      var pre = window._prebargainingData;
+      if (pre && pre.headers && pre.rows) {
+        var filtered = pre.rows.filter(function (r) {
+          var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
+          var j = normalizeJumin(r['주민등록번호'] != null ? r['주민등록번호'] : r['주민번호']);
+          return n === nameKey && j === juminKey;
+        });
+        filtered.sort(function (a, b) {
+          for (var i = 0; i < pre.headers.length; i++) {
+            var h = pre.headers[i];
+            var va = a[h] != null ? a[h] : '';
+            var vb = b[h] != null ? b[h] : '';
+            if (typeof va === 'number' && typeof vb === 'number') {
+              if (va !== vb) return va > vb ? 1 : -1;
+            } else {
+              var sa = String(va);
+              var sb = String(vb);
+              if (sa !== sb) return sa > sb ? 1 : -1;
+            }
+          }
+          return 0;
+        });
+        renderPrebargainingTable(pre.headers, filtered);
+      } else {
+        document.getElementById('prebargaining-table').innerHTML = '<div class="placeholder">kb023_prebargaining.xlsx를 로드한 후 선택하세요.</div>';
+      }
+    };
+  </script>
+</body>
+</html>
