@@ -6,20 +6,28 @@ information/insurance/accident/counsel xlsx CRUD 및 accident/counsel 추가 저
 import logging
 import os
 import re
+import json
 from datetime import datetime, date
 
 # 204/304 등 정상 요청 로그를 터미널에 찍지 않음 (에러만 출력)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
+import traceback
+import threading
 from flask import Flask, request, jsonify, send_from_directory
 import openpyxl
 
+excel_lock = threading.Lock()
+
 app = Flask(__name__, static_folder='.', static_url_path='')
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-INFORMATION_FILE = os.path.join(BASE_DIR, 'kb023_information.xlsx')
-INSURANCE_FILE   = os.path.join(BASE_DIR, 'kb023_insurance.xlsx')
-ACCIDENT_FILE    = os.path.join(BASE_DIR, 'kb023_accident.xlsx')
-COUNSEL_FILE     = os.path.join(BASE_DIR, 'kb023_counse.xlsx')
+SOURCE_DIR = os.path.join(BASE_DIR, '.source')
+os.makedirs(SOURCE_DIR, exist_ok=True)
+
+INFORMATION_FILE = os.path.join(SOURCE_DIR, 'kb023_information.xlsx')
+INSURANCE_FILE   = os.path.join(SOURCE_DIR, 'kb023_insurance.xlsx')
+ACCIDENT_FILE    = os.path.join(SOURCE_DIR, 'kb023_accident.xlsx')
+COUNSEL_FILE     = os.path.join(SOURCE_DIR, 'kb023_counsel.xlsx')
 
 # ---------------------------------------------------------------------------
 # 유틸리티
@@ -95,6 +103,20 @@ def _load_or_create_wb(file_path, default_headers, sheet_title='Sheet1'):
         ws.append(headers)
     return wb, ws, headers
 
+def _get_real_max_row(ws):
+    real_max = 1
+    empty_cnt = 0
+    # max_row가 백만단위로 오동작할 때를 대비하여 비어있는 셀을 카운트
+    for r in range(1, min(ws.max_row, 1048576) + 1):
+        if any(ws.cell(row=r, column=c).value is not None for c in range(1, 6)):
+            real_max = r
+            empty_cnt = 0
+        else:
+            empty_cnt += 1
+            if empty_cnt > 50:
+                break
+    return real_max
+
 def _delete_rows_by_key(ws, headers, key_name, key_jumin):
     """ws에서 계약자명+주민번호가 일치하는 행을 모두 삭제. 삭제 건수 반환."""
     name_col = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
@@ -102,8 +124,8 @@ def _delete_rows_by_key(ws, headers, key_name, key_jumin):
     if name_col is None or jumin_col is None:
         return 0
     to_delete = [
-        r for r in range(2, ws.max_row + 1)
-        if (ws.cell(row=r, column=name_col + 1).value or '').strip() == key_name
+        r for r in range(2, _get_real_max_row(ws) + 1)
+        if str(ws.cell(row=r, column=name_col + 1).value or '').strip() == key_name
         and normalize_jumin(ws.cell(row=r, column=jumin_col + 1).value) == key_jumin
     ]
     for r in reversed(to_delete):
@@ -148,6 +170,168 @@ def static_file(path):
 # API
 # ---------------------------------------------------------------------------
 
+@app.route('/api/backup_restore', methods=['POST'])
+def api_backup_restore():
+    """
+    백업/복원 기능:
+    backup: 현재 xlsx 파일들을 .source 폴더의 json 파일로 저장 (백업)
+    restore: .source 폴더의 json 파일들로 현재 xlsx 파일을 덮어쓰기 (복원)
+    """
+    req = request.get_json(force=True) or {}
+    pwd = req.get('password', '')
+    action = req.get('action')
+
+    if action == 'backup' and pwd != 'xlsx2json':
+        return jsonify({"error": "패스워드가 일치하지 않습니다."}), 403
+    elif action == 'restore' and pwd != 'json2xlsx':
+        return jsonify({"error": "패스워드가 일치하지 않습니다."}), 403
+
+    files_map = {
+        'kb023_products': os.path.join(SOURCE_DIR, 'kb023_products.xlsx'),
+        'kb023_information': INFORMATION_FILE,
+        'kb023_insurance': INSURANCE_FILE,
+        'kb023_accident': ACCIDENT_FILE,
+        'kb023_counsel': COUNSEL_FILE
+    }
+
+    try:
+        with excel_lock:
+            if action == 'backup':
+                # xlsx -> json in .source
+                for name, xlsx_path in files_map.items():
+                    json_path = os.path.join(SOURCE_DIR, name + '.json')
+                    if os.path.isfile(xlsx_path):
+                        wb = openpyxl.load_workbook(xlsx_path, data_only=True)
+                        if not wb.sheetnames:
+                            continue
+                        ws = wb[wb.sheetnames[0]]
+                        rows = []
+                        for row in ws.iter_rows(values_only=True):
+                            row_vals = []
+                            for cell in row:
+                                if isinstance(cell, (datetime, date)):
+                                    row_vals.append(cell.isoformat())
+                                else:
+                                    row_vals.append(cell)
+                            rows.append(row_vals)
+                        with open(json_path, 'w', encoding='utf-8') as f:
+                            json.dump(rows, f, ensure_ascii=False)
+                return jsonify({"ok": True, "message": "백업(xlsx -> json)이 완료되었습니다."})
+
+            elif action == 'restore':
+                # json in .source -> xlsx
+                for name, xlsx_path in files_map.items():
+                    json_path = os.path.join(SOURCE_DIR, name + '.json')
+                    if os.path.isfile(json_path):
+                        with open(json_path, 'r', encoding='utf-8') as f:
+                            rows = json.load(f)
+                        wb = openpyxl.Workbook()
+                        ws = wb.active
+                        ws.title = "Sheet1"
+                        for row in rows:
+                            new_row = []
+                            for cell in row:
+                                if isinstance(cell, str) and len(cell) >= 10:
+                                    if re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}', cell):
+                                        try:
+                                            new_row.append(datetime.fromisoformat(cell))
+                                            continue
+                                        except: pass
+                                    elif re.match(r'^\d{4}-\d{2}-\d{2}$', cell):
+                                        try:
+                                            new_row.append(date.fromisoformat(cell))
+                                            continue
+                                        except: pass
+                                new_row.append(cell)
+                            ws.append(new_row)
+                        wb.save(xlsx_path)
+                return jsonify({"ok": True, "message": "복원(json -> xlsx)이 완료되었습니다."})
+            else:
+                return jsonify({"error": "알 수 없는 작업입니다."}), 400
+    except Exception as e:
+        logging.exception(f"Error during {action}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/data/<name>', methods=['GET'])
+def api_get_data(name):
+    """
+    엑셀 파일을 읽어 JSON으로 단번에 반환하는 통합 API (프론트엔드 최적화)
+    name: 'information', 'insurance', 'accident', 'counsel', 'products'
+    """
+    file_map = {
+        'information': INFORMATION_FILE,
+        'insurance': INSURANCE_FILE,
+        'accident': ACCIDENT_FILE,
+        'counsel': COUNSEL_FILE,
+        'products': os.path.join(SOURCE_DIR, 'kb023_products.xlsx')
+    }
+    file_path = file_map.get(name)
+    if not file_path:
+        return jsonify({"error": "Unknown data name"}), 400
+
+    if not os.path.isfile(file_path):
+        return jsonify({"headers": [], "rows": []})
+
+    try:
+        with excel_lock:
+            wb = openpyxl.load_workbook(file_path, data_only=True)
+            if not wb.sheetnames:
+                return jsonify({"headers": [], "rows": []})
+            ws = wb[wb.sheetnames[0]]
+            
+            rows_iter = ws.iter_rows(values_only=True)
+            try:
+                header_row = next(rows_iter)
+                # 헤더 정규화 (엑셀과 프론트엔드의 차이 보정)
+                headers = []
+                for cell in header_row:
+                    h = str(cell).strip() if cell is not None else ''
+                    if h == '주민등록번호': h = '주민번호'
+                    elif h == '보험종류': h = '상품종류'
+                    elif h == 'Q/A': h = '문/답'
+                    headers.append(h)
+            except StopIteration:
+                return jsonify({"headers": [], "rows": []})
+
+            data_rows = []
+            file_row_index = 0
+            for row in rows_iter:
+                row_dict = {}
+                is_empty = True
+                for i, v in enumerate(row):
+                    if i < len(headers):
+                        val = v
+                        if isinstance(val, datetime):
+                            val = val.strftime('%Y-%m-%d %H:%M:%S')
+                        elif isinstance(val, date):
+                            val = val.strftime('%Y-%m-%d')
+                        elif isinstance(val, (int, float)):
+                            # 날짜 형식인 일련번호인지 등은 프론트에서 처리하므로 원본을 넘김
+                            pass
+                        
+                        if val is not None and str(val).strip() != '':
+                            is_empty = False
+                        row_dict[headers[i]] = val
+                
+                if not is_empty:
+                    # accident 등 데이터 조작에 필요한 엑셀 실제 열 번호 (0-based)
+                    row_dict['_fileRowIndex'] = file_row_index
+                
+                data_rows.append(row_dict)
+                file_row_index += 1
+
+            return jsonify({
+                "headers": headers,
+                # 완전 빈 행 걸러내기
+                "rows": [r for r in data_rows if any(v is not None and str(v).strip() != '' for k, v in r.items() if k != '_fileRowIndex')]
+            })
+    except Exception as e:
+        logging.exception(f"Error reading {name} data")
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------------------------------------------------------------
+
 @app.route('/api/information', methods=['POST'])
 def api_information():
     """information xlsx: action=insert|update|delete."""
@@ -158,32 +342,34 @@ def api_information():
             return jsonify({'ok': False, 'error': 'action은 insert/update/delete 중 하나여야 합니다.'}), 400
 
         default_hdrs = data.get('headers') or ['계약자명', '주민번호', '배정일자', '종료일자', '문자전송', 'DB종류', '연락처']
-        wb, ws, headers = _load_or_create_wb(INFORMATION_FILE, default_hdrs)
-        row_index = data.get('rowIndex')
-        row_dict  = data.get('row') or {}
+        with excel_lock:
+            wb, ws, headers = _load_or_create_wb(INFORMATION_FILE, default_hdrs)
+            row_index = data.get('rowIndex')
+            row_dict  = data.get('row') or {}
 
-        if action == 'delete':
-            if row_index is None:
-                return jsonify({'ok': False, 'error': '삭제 시 rowIndex 필요'}), 400
-            excel_row = 2 + int(row_index)
-            if excel_row < 2 or excel_row > ws.max_row:
-                return jsonify({'ok': False, 'error': '유효하지 않은 행'}), 400
-            ws.delete_rows(excel_row, 1)
-        elif action == 'update':
-            if row_index is None:
-                return jsonify({'ok': False, 'error': '수정 시 rowIndex 필요'}), 400
-            excel_row = 2 + int(row_index)
-            if excel_row < 2 or excel_row > ws.max_row:
-                return jsonify({'ok': False, 'error': '유효하지 않은 행'}), 400
-            for col, h in enumerate(headers, 1):
-                ws.cell(row=excel_row, column=col, value=_date_value_for_sheet(h, row_dict.get(h, '')))
-        else:
-            ws.append([_date_value_for_sheet(h, row_dict.get(h, '')) for h in headers])
+            if action == 'delete':
+                if row_index is None:
+                    return jsonify({'ok': False, 'error': '삭제 시 rowIndex 필요'}), 400
+                excel_row = 2 + int(row_index)
+                if excel_row < 2 or excel_row > _get_real_max_row(ws):
+                    return jsonify({'ok': False, 'error': '유효하지 않은 행'}), 400
+                ws.delete_rows(excel_row, 1)
+            elif action == 'update':
+                if row_index is None:
+                    return jsonify({'ok': False, 'error': '수정 시 rowIndex 필요'}), 400
+                excel_row = 2 + int(row_index)
+                if excel_row < 2 or excel_row > _get_real_max_row(ws):
+                    return jsonify({'ok': False, 'error': '유효하지 않은 행'}), 400
+                for col, h in enumerate(headers, 1):
+                    ws.cell(row=excel_row, column=col, value=_date_value_for_sheet(h, row_dict.get(h, '')))
+            else:
+                ws.append([_date_value_for_sheet(h, row_dict.get(h, '')) for h in headers])
 
-        wb.save(INFORMATION_FILE)
-        wb.close()
+            wb.save(INFORMATION_FILE)
+            wb.close()
         return jsonify({'ok': True, 'action': action})
     except Exception as e:
+        logging.exception("Error in /api/information")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
@@ -201,40 +387,42 @@ def api_insurance():
         key_jumin = normalize_jumin(key_raw.get('주민번호') or key_raw.get('주민등록번호'))
 
         default_hdrs = ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '월보험료', '납입보험료', '총보험료', '해지환급금', '대출금']
-        wb, ws, headers = _load_or_create_wb(INSURANCE_FILE, default_hdrs)
-        if '보험종류' in headers and '상품종류' not in headers:
-            headers = ['상품종류' if h == '보험종류' else h for h in headers]
+        with excel_lock:
+            wb, ws, headers = _load_or_create_wb(INSURANCE_FILE, default_hdrs)
+            if '보험종류' in headers and '상품종류' not in headers:
+                headers = ['상품종류' if h == '보험종류' else h for h in headers]
 
-        row_dict = data.get('row') or {}
+            row_dict = data.get('row') or {}
 
-        def _make_row(src):
-            return [_amount_to_number(_date_value_for_sheet(h, src.get(h, '') or (src.get('상품종류', '') if h == '보험종류' else ''))) for h in headers]
+            def _make_row(src):
+                return [_amount_to_number(_date_value_for_sheet(h, src.get(h, '') or (src.get('상품종류', '') if h == '보험종류' else ''))) for h in headers]
 
-        def row_matches(r):
-            return (r.get('계약자명') or '').strip() == key_name and \
-                   normalize_jumin(r.get('주민번호') or r.get('주민등록번호')) == key_jumin
+            def row_matches(r):
+                return str(r.get('계약자명') or '').strip() == key_name and \
+                       normalize_jumin(r.get('주민번호') or r.get('주민등록번호')) == key_jumin
 
-        if action == 'delete':
-            _delete_rows_by_key(ws, headers, key_name, key_jumin)
-        elif action == 'update':
-            updated = False
-            for r in range(2, ws.max_row + 1):
-                row_obj = {h: ws.cell(row=r, column=c).value for c, h in enumerate(headers, 1)}
-                if row_matches(row_obj):
-                    merged = {h: row_dict.get(h, row_obj.get(h, '')) for h in headers}
-                    for c, h in enumerate(headers, 1):
-                        ws.cell(row=r, column=c, value=_amount_to_number(_date_value_for_sheet(h, merged[h])))
-                    updated = True
-                    break
-            if not updated:
+            if action == 'delete':
+                _delete_rows_by_key(ws, headers, key_name, key_jumin)
+            elif action == 'update':
+                updated = False
+                for r in range(2, _get_real_max_row(ws) + 1):
+                    row_obj = {h: ws.cell(row=r, column=c).value for c, h in enumerate(headers, 1)}
+                    if row_matches(row_obj):
+                        merged = {h: row_dict.get(h, row_obj.get(h, '')) for h in headers}
+                        for c, h in enumerate(headers, 1):
+                            ws.cell(row=r, column=c, value=_amount_to_number(_date_value_for_sheet(h, merged[h])))
+                        updated = True
+                        break
+                if not updated:
+                    ws.append(_make_row(row_dict))
+            else:
                 ws.append(_make_row(row_dict))
-        else:
-            ws.append(_make_row(row_dict))
 
-        wb.save(INSURANCE_FILE)
-        wb.close()
+            wb.save(INSURANCE_FILE)
+            wb.close()
         return jsonify({'ok': True, 'action': action})
     except Exception as e:
+        logging.exception("Error in /api/insurance")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
@@ -253,16 +441,42 @@ def accident_append():
                 return jsonify({'ok': False, 'error': '삭제할 행의 rowIndex가 필요합니다.'}), 400
             if not os.path.isfile(ACCIDENT_FILE):
                 return jsonify({'ok': True, 'deleted': 0})
-            wb = openpyxl.load_workbook(ACCIDENT_FILE)
-            ws = wb.active
-            excel_row = 2 + int(row_index)
-            if excel_row < 2 or excel_row > ws.max_row:
+            with excel_lock:
+                wb = openpyxl.load_workbook(ACCIDENT_FILE)
+                ws = wb.active
+                excel_row = 2 + int(row_index)
+                if excel_row < 2 or excel_row > _get_real_max_row(ws):
+                    wb.close()
+                    return jsonify({'ok': False, 'error': '유효하지 않은 행 인덱스입니다.'}), 400
+                ws.delete_rows(excel_row, 1)
+                wb.save(ACCIDENT_FILE)
                 wb.close()
-                return jsonify({'ok': False, 'error': '유효하지 않은 행 인덱스입니다.'}), 400
-            ws.delete_rows(excel_row, 1)
-            wb.save(ACCIDENT_FILE)
-            wb.close()
             return jsonify({'ok': True, 'deleted': 1})
+            
+        if action == 'updateRow':
+            row_index = data.get('rowIndex')
+            if row_index is None:
+                return jsonify({'ok': False, 'error': '수정할 행의 rowIndex가 필요합니다.'}), 400
+            row_dict = data.get('row') or {}
+            if not os.path.isfile(ACCIDENT_FILE):
+                return jsonify({'ok': False, 'error': '파일이 없습니다.'}), 400
+            
+            with excel_lock:
+                wb = openpyxl.load_workbook(ACCIDENT_FILE)
+                ws = wb.active
+                excel_row = 2 + int(row_index)
+                if excel_row < 2 or excel_row > _get_real_max_row(ws):
+                    wb.close()
+                    return jsonify({'ok': False, 'error': '유효하지 않은 행 인덱스입니다.'}), 400
+                
+                hdrs = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
+                for col, h in enumerate(hdrs, 1):
+                    if h in row_dict:
+                        ws.cell(row=excel_row, column=col, value=row_dict[h])
+                
+                wb.save(ACCIDENT_FILE)
+                wb.close()
+            return jsonify({'ok': True, 'updated': 1})
 
         if action == 'delete':
             key_raw   = data.get('key') or {}
@@ -270,16 +484,16 @@ def accident_append():
             key_jumin = normalize_jumin(key_raw.get('주민번호') or key_raw.get('주민등록번호'))
             if not os.path.isfile(ACCIDENT_FILE):
                 return jsonify({'ok': True, 'deleted': 0})
-            wb = openpyxl.load_workbook(ACCIDENT_FILE)
-            ws = wb.active
-            headers = [str(ws.cell(row=1, column=c).value).strip() if ws.cell(row=1, column=c).value else '' for c in range(1, ws.max_column + 1)]
-            deleted = _delete_rows_by_key(ws, headers, key_name, key_jumin)
-            wb.save(ACCIDENT_FILE)
-            wb.close()
+            with excel_lock:
+                wb = openpyxl.load_workbook(ACCIDENT_FILE)
+                ws = wb.active
+                headers = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
+                deleted = _delete_rows_by_key(ws, headers, key_name, key_jumin)
+                wb.save(ACCIDENT_FILE)
+                wb.close()
             return jsonify({'ok': True, 'deleted': deleted})
 
-        # append
-        default_hdrs  = ['계약자명', '주민번호', '구분', '사고일자', '사고내용', '입력일자', '기록일자', '기록시간', '문/답', '세부내용']
+        default_hdrs  = ['계약자명', '주민번호', '구분', '입력일자', '기록일자', '기록시간', '문/답', '세부내용']
         headers       = data.get('headers') or default_hdrs
         rows_to_append = data.get('rowsToAppend') or []
         if not rows_to_append:
@@ -288,16 +502,18 @@ def accident_append():
         today_serial = yyyymmdd_to_excel_date(
             date.today().year * 10000 + date.today().month * 100 + date.today().day
         )
-        wb, ws, _ = _load_or_create_wb(ACCIDENT_FILE, headers, sheet_title='accident')
-        for row_dict in rows_to_append:
-            row_dict = dict(row_dict)
-            if '입력일자' in headers and (row_dict.get('입력일자') is None or row_dict.get('입력일자') == ''):
-                row_dict['입력일자'] = today_serial
-            ws.append(_build_log_row(headers, row_dict))
-        wb.save(ACCIDENT_FILE)
-        wb.close()
+        with excel_lock:
+            wb, ws, _ = _load_or_create_wb(ACCIDENT_FILE, headers, sheet_title='accident')
+            for row_dict in rows_to_append:
+                row_dict = dict(row_dict)
+                if '입력일자' in headers and (row_dict.get('입력일자') is None or row_dict.get('입력일자') == ''):
+                    row_dict['입력일자'] = today_serial
+                ws.append(_build_log_row(headers, row_dict))
+            wb.save(ACCIDENT_FILE)
+            wb.close()
         return jsonify({'ok': True, 'appended': len(rows_to_append)})
     except Exception as e:
+        logging.exception("Error in /api/accident")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 
@@ -316,12 +532,13 @@ def counsel_append():
             key_jumin = normalize_jumin(key_raw.get('주민번호') or key_raw.get('주민등록번호'))
             if not os.path.isfile(COUNSEL_FILE):
                 return jsonify({'ok': True, 'deleted': 0})
-            wb = openpyxl.load_workbook(COUNSEL_FILE)
-            ws = wb.active
-            headers = [str(ws.cell(row=1, column=c).value).strip() if ws.cell(row=1, column=c).value else '' for c in range(1, ws.max_column + 1)]
-            deleted = _delete_rows_by_key(ws, headers, key_name, key_jumin)
-            wb.save(COUNSEL_FILE)
-            wb.close()
+            with excel_lock:
+                wb = openpyxl.load_workbook(COUNSEL_FILE)
+                ws = wb.active
+                headers = [str(cell.value).strip() if cell.value is not None else '' for cell in ws[1]]
+                deleted = _delete_rows_by_key(ws, headers, key_name, key_jumin)
+                wb.save(COUNSEL_FILE)
+                wb.close()
             return jsonify({'ok': True, 'deleted': deleted})
 
         # append
@@ -331,13 +548,15 @@ def counsel_append():
         if not rows_to_append:
             return jsonify({'ok': True, 'appended': 0})
 
-        wb, ws, _ = _load_or_create_wb(COUNSEL_FILE, headers, sheet_title='counsel')
-        for row_dict in rows_to_append:
-            ws.append(_build_log_row(headers, row_dict))
-        wb.save(COUNSEL_FILE)
-        wb.close()
+        with excel_lock:
+            wb, ws, _ = _load_or_create_wb(COUNSEL_FILE, headers, sheet_title='counsel')
+            for row_dict in rows_to_append:
+                ws.append(_build_log_row(headers, row_dict))
+            wb.save(COUNSEL_FILE)
+            wb.close()
         return jsonify({'ok': True, 'appended': len(rows_to_append)})
     except Exception as e:
+        logging.exception("Error in /api/counsel")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
 

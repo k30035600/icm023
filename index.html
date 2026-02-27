@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KB 고객관리</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Malgun Gothic', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Malgun Gothic', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
     .header {
       position: relative;
       background: #1e3a5f;
@@ -17,19 +27,25 @@
       font-weight: bold;
       text-align: center;
     }
-    .header .header-title { font-weight: bold; }
+
+    .header .header-title {
+      font-weight: bold;
+    }
+
     .header .header-left {
       position: absolute;
       left: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
     }
+
     .header .header-btns {
       position: absolute;
       right: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
     }
+
     .header .header-left button,
     .header .header-btns button {
       padding: 0.4rem 0.8rem;
@@ -40,8 +56,21 @@
       border: 1px solid #fff;
       border-radius: 4px;
     }
-    .header .header-btns button:hover { background: #e8eef4; color: #1e3a5f; }
-    .header .header-checkbox { margin-left: 0.75rem; font-weight: normal; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem; }
+
+    .header .header-btns button:hover {
+      background: #e8eef4;
+      color: #1e3a5f;
+    }
+
+    .header .header-checkbox {
+      margin-left: 0.75rem;
+      font-weight: normal;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
     .body {
       flex: 1;
       display: flex;
@@ -49,6 +78,7 @@
       min-height: 0;
       align-items: stretch;
     }
+
     .container {
       flex: 1;
       min-width: 0;
@@ -59,36 +89,198 @@
       flex-direction: column;
       background: #fafafa;
     }
-    .container h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #333; }
-    .container input[type="file"] { margin-bottom: 0.5rem; font-size: 0.9rem; }
-    .table-wrap { flex: 1; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 0; width: 100%; box-sizing: border-box; }
-    #left-container .table-wrap:first-of-type { flex: 3 1 0; }
-    #left-container .table-wrap:nth-of-type(2) { flex: 0 0 auto; height: fit-content; align-self: flex-start; }
-    #left-container .table-wrap:nth-of-type(3) { flex: 1 1 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-    th, td { border: 1px solid #ddd; padding: 0.3rem 0.6rem; text-align: left; }
-    th { background: #2c5282; color: #fff; white-space: nowrap; position: sticky; top: 0; }
-    tr:nth-child(even) { background: #f8f9fa; }
+
+    .container h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    .container input[type="file"] {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .table-wrap {
+      flex: 1;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      min-height: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #left-container .table-wrap:first-of-type {
+      flex: 3 1 0;
+    }
+
+    #left-container .table-wrap:nth-of-type(2) {
+      flex: 0 0 auto;
+      height: fit-content;
+      align-self: flex-start;
+    }
+
+    #left-container .table-wrap:nth-of-type(3) {
+      flex: 1 1 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 0.3rem 0.6rem;
+      text-align: left;
+    }
+
+    th {
+      background: #2c5282;
+      color: #fff;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+
     /* DB고객 세부내용 양식 테이블 */
-    .detail-form { border: 1px solid #333; font-size: 0.75rem; }
-    .detail-form td, .detail-form th { border: 1px dotted #999; padding: 0.2rem 0.5rem; vertical-align: middle; }
-    .detail-form .section-border { border: 1px solid #333; }
-    .detail-form .main-title { font-weight: bold; font-size: 1rem; text-align: center; background: #f0f4f8; border: 1px solid #333; width: 5em; }
-    .detail-form .value-placeholder { color: #888; font-size: 0.75em; }
-    .detail-form .label-cell-empty { background: #f8f9fa; border: 1px solid #333; }
-    .detail-form .detail-input { width: 100%; min-width: 0; padding: 0.2rem 0.3rem; font-size: inherit; border: 1px solid #ccc; }
-    .detail-form .radio-inline { display: inline-block; margin-right: 0.75rem; font-weight: normal; white-space: nowrap; }
-    .detail-form .radio-inline input { margin-right: 0.25rem; vertical-align: middle; }
-    .detail-form .label-cell { background: #e8eef4; font-weight: 500; white-space: nowrap; width: 1%; }
-    .detail-form .value-cell { background: #fff; min-width: 4em; }
-    .detail-form .section-label { background: #dde4ec; font-weight: bold; text-align: center; white-space: nowrap; }
-    .detail-form .action-header { background: #e8eef4; text-align: center; }
-    .detail-form .action-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #2c5282; background: #fff; border-radius: 3px; }
-    .detail-form .action-btn:hover { background: #e8eef4; }
-    .detail-form .action-sub { font-size: 0.75rem; text-align: center; color: #555; }
-    .detail-form .detail-amount { text-align: right; }
-    .detail-form select.detail-input { cursor: pointer; }
+    .detail-form {
+      border: 1px solid #333;
+      font-size: 0.75rem;
+    }
+
+    .detail-form td,
+    .detail-form th {
+      border: 1px dotted #999;
+      padding: 0.2rem 0.5rem;
+      vertical-align: middle;
+    }
+
+    .detail-form .section-border {
+      border: 1px solid #333;
+    }
+
+    .detail-form .main-title {
+      font-weight: bold;
+      font-size: 1rem;
+      text-align: center;
+      background: #f0f4f8;
+      border: 1px solid #333;
+      width: 5em;
+    }
+
+    .detail-form .value-placeholder {
+      color: #888;
+      font-size: 0.75em;
+    }
+
+    .detail-form .label-cell-empty {
+      background: #f8f9fa;
+      border: 1px solid #333;
+    }
+
+    .detail-form .detail-input {
+      width: 100%;
+      min-width: 0;
+      padding: 0.2rem 0.3rem;
+      font-size: inherit;
+      border: 1px solid #ccc;
+    }
+
+    .detail-form .radio-inline {
+      display: inline-block;
+      margin-right: 0.75rem;
+      font-weight: normal;
+      white-space: nowrap;
+    }
+
+    .detail-form .radio-inline input {
+      margin-right: 0.25rem;
+      vertical-align: middle;
+    }
+
+    .detail-form .label-cell {
+      background: #e8eef4;
+      font-weight: 500;
+      white-space: nowrap;
+      width: 1%;
+    }
+
+    .detail-form .value-cell {
+      background: #fff;
+      min-width: 4em;
+    }
+
+    .detail-form .section-label {
+      background: #dde4ec;
+      font-weight: bold;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .detail-form .action-header {
+      background: #e8eef4;
+      text-align: center;
+    }
+
+    .detail-form .action-btn,
+    .action-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #f8f9fa;
+      border-radius: 4px;
+      color: #666;
+      transition: all 0.2s ease;
+    }
+
+    .detail-form .action-btn:not(:disabled),
+    .action-btn:not(:disabled) {
+      background: #2c5282;
+      color: #fff;
+      border-color: #1a365d;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .detail-form .action-btn:not(:disabled):hover,
+    .action-btn:not(:disabled):hover {
+      background: #1a365d;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .detail-form .action-btn:disabled,
+    .action-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .detail-form .action-sub {
+      font-size: 0.75rem;
+      text-align: center;
+      color: #555;
+    }
+
+    .detail-form .detail-amount {
+      text-align: right;
+    }
+
+    .detail-form select.detail-input {
+      cursor: pointer;
+    }
+
     .footer {
+      position: relative;
       background: #2d3748;
       color: #e2e8f0;
       padding: 0.6rem 1.5rem;
@@ -97,6 +289,17 @@
       justify-content: space-between;
       align-items: center;
     }
+
+    .footer .footer-center-text {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.35rem;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
+
     .footer .footer-btn {
       padding: 0.35rem 0.75rem;
       font-size: 0.85rem;
@@ -106,81 +309,412 @@
       border: 1px solid #e2e8f0;
       border-radius: 4px;
     }
-    .footer .footer-btn:hover { background: #fff; color: #2d3748; }
-    .placeholder { color: #718096; padding: 1rem; text-align: center; }
+
+    .footer .footer-btn:hover {
+      background: #fff;
+      color: #2d3748;
+    }
+
+    .placeholder {
+      color: #718096;
+      padding: 1rem;
+      text-align: center;
+    }
+
     /* information/insurance/accident: 박스 너비와 동일하게 */
-    #info-table, #insurance-table, #accident-table { width: 100%; max-width: 100%; min-width: 0; display: block; box-sizing: border-box; margin-left: 0; margin-right: 0; }
-    #info-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.7rem; min-width: 0; box-sizing: border-box; }
+    #info-table,
+    #insurance-table,
+    #accident-table {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      display: block;
+      box-sizing: border-box;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    #info-table table {
+      table-layout: fixed;
+      width: 100%;
+      max-width: 100%;
+      font-size: 0.7rem;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
     #info-table table td,
-    #info-table table th { padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: bold; }
-    #info-table table tbody tr { cursor: pointer; }
-    #info-table table tbody tr:hover { background: #e6f0fa; }
+    #info-table table th {
+      padding: 0.2rem 0.6rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+      font-weight: bold;
+    }
+
+    #info-table table tbody tr {
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    #info-table table tbody tr:hover {
+      background: #e6f0fa;
+    }
+
+    #info-table table tbody tr.row-selected,
+    #insurance-table table tbody tr.row-selected {
+      background: #d0e4f5 !important;
+    }
+
     /* counsel: 과거상담/오늘상담 높이는 JS로 information·DB고객 세부내용과 동기화 */
-    #right-container .counsel-section { font-size: 0.7rem; }
-    #right-container .counsel-section .chat-msg { max-width: var(--counsel-input-width, 98%); width: max-content; font-size: 0.7rem; }
-    .counsel-empty-text { color: #9ca3af; opacity: 0.85; padding: 0.5rem 0; }
-    #right-container .counsel-chat-box .counsel-chat-input { font-size: 0.75rem; }
-    #right-container .counsel-chat-box { display: flex; flex-direction: column; min-height: 0; }
-    #right-container .counsel-chat-box .chat-messages { flex: 1; min-height: 0; overflow-y: auto; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; background: #f8fafc; min-height: 0; }
-    .chat-msg-row { display: flex; align-items: flex-end; gap: 0.2rem; max-width: 100%; }
-    .chat-msg-row.msg-row-mun { align-self: flex-start; }
-    .chat-msg-row.msg-row-dap { align-self: flex-end; flex-direction: row-reverse; }
-    .chat-msg { max-width: 98%; padding: 0.3rem 0.3rem; border-radius: 12px; font-size: 0.7rem; line-height: 1.4; word-break: break-word; cursor: pointer; }
-    .chat-msg.msg-mun { background: #e8eef4; color: #1e3a5f; border-bottom-left-radius: 4px; text-align: left; }
-    .chat-msg.msg-dap { background: rgba(44, 82, 130, 0.5); color: #fff; border-bottom-right-radius: 4px; text-align: right; }
-    .chat-msg-time { font-size: 0.5rem; color: #718096; white-space: nowrap; flex-shrink: 0; }
-    .chat-msg-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.25rem; }
-    .chat-input-row { display: flex; gap: 0.35rem; padding: 0.5rem 0.75rem; border-top: 1px solid #e0e0e0; background: #fff; align-items: center; }
-    .chat-current-name { flex-shrink: 0; font-size: 0.85rem; color: #2c5282; font-weight: 600; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .chat-input { flex: 1; min-width: 0; padding: 0.4rem 0.6rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 6px; }
-    .chat-send-type { padding: 0.35rem 0.5rem; font-size: 0.75rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
-    .chat-send-btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; cursor: pointer; border: none; background: #2c5282; color: #fff; border-radius: 6px; }
-    .chat-send-btn:hover { background: #1e3a5f; }
-    #right-container { display: flex; flex-direction: column; min-height: 0; }
-    .table-rows-4 { min-height: 9rem; }
-    #right-container .table-wrap-half { min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; width: 100%; box-sizing: border-box; }
-    #right-container .table-wrap.table-rows-4 { flex: 1 1 0; min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; width: 100%; box-sizing: border-box; }
-    #insurance-table, #accident-table, #counsel-table { width: 100%; max-width: 100%; min-width: 0; display: block; box-sizing: border-box; margin-left: 0; margin-right: 0; }
-    #insurance-table table, #accident-table table, #counsel-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.7rem; min-width: 0; box-sizing: border-box; border-collapse: collapse; }
-    #insurance-table table td, #insurance-table table th, #accident-table table td, #accident-table table th, #counsel-table table td, #counsel-table table th { border: 1px solid #333; padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-    #insurance-table table thead th, #accident-table table thead th, #counsel-table table thead th { font-weight: bold; border-bottom: 2px solid #333; }
-    #insurance-table table tbody tr, #accident-table table tbody tr { cursor: pointer; }
-    #insurance-table table tbody tr:hover, #accident-table table tbody tr:hover { background: #e6f0fa; }
-    #insurance-table table td.detail-amount, #insurance-table table th.detail-amount { text-align: right; }
-    #insurance-table table { border: 1px solid #333; }
-    #insurance-table table th, #insurance-table table td { border: 1px dotted #999; }
-    #insurance-table table thead th { text-align: center; font-weight: bold; }
-    #insurance-table table .ins-th-rowspan { border-right: 1px dotted #999; }
-    #insurance-table table thead th { border-bottom: 1px dotted #999; }
-    #insurance-table table thead tr:nth-child(2) th { border-left: 1px dotted #999; border-right: 1px dotted #999; border-bottom: 1px dotted #999; }
-    #insurance-table table tbody tr:first-child td { border-top: 1px dotted #999; }
-    #insurance-table table tbody td { border: 1px dotted #999; }
-    #insurance-table table td.ins-cell-double { white-space: normal; vertical-align: top; }
-    #insurance-table table td.ins-cell-double .ins-cell-line { display: block; }
-    #insurance-table table td.ins-cell-double .ins-cell-line:first-child { border-bottom: 1px dotted #999; padding-bottom: 0.15rem; margin-bottom: 0.15rem; }
-    #accident-table table tbody tr.accident-row-delete-selected { background: #feb2b2; }
-    #accident-table .accident-inline-input { font-size: inherit; padding: 0.2rem 0.3rem; border: 1px solid #ccc; border-radius: 3px; }
+    #right-container .counsel-section {
+      font-size: 0.7rem;
+    }
+
+    #right-container .counsel-section .chat-msg {
+      max-width: var(--counsel-input-width, 98%);
+      width: max-content;
+      font-size: 0.7rem;
+    }
+
+    .counsel-empty-text {
+      color: #9ca3af;
+      opacity: 0.85;
+      padding: 0.5rem 0;
+    }
+
+    #right-container .counsel-chat-box .counsel-chat-input {
+      font-size: 0.75rem;
+    }
+
+    #right-container .counsel-chat-box {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    #right-container .counsel-chat-box .chat-messages {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: #f8fafc;
+      min-height: 0;
+    }
+
+    .chat-msg-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.2rem;
+      max-width: 100%;
+    }
+
+    .chat-msg-row.msg-row-mun {
+      align-self: flex-start;
+    }
+
+    .chat-msg-row.msg-row-dap {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg {
+      max-width: 98%;
+      padding: 0.3rem 0.3rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      word-break: break-word;
+      cursor: pointer;
+    }
+
+    .chat-msg.msg-mun {
+      background: #e8eef4;
+      color: #1e3a5f;
+      border-bottom-left-radius: 4px;
+      text-align: left;
+    }
+
+    .chat-msg.msg-dap {
+      background: rgba(44, 82, 130, 0.5);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      text-align: right;
+    }
+
+    .chat-msg-time {
+      font-size: 0.5rem;
+      color: #718096;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .chat-msg-date {
+      font-size: 0.7rem;
+      color: #718096;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      border-top: 1px solid #e0e0e0;
+      background: #fff;
+      align-items: center;
+    }
+
+    .chat-current-name {
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      color: #2c5282;
+      font-weight: 600;
+      max-width: 8rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .chat-send-type {
+      padding: 0.35rem 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .chat-send-btn {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      background: #2c5282;
+      color: #fff;
+      border-radius: 6px;
+    }
+
+    .chat-send-btn:hover {
+      background: #1e3a5f;
+    }
+
+    #right-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .table-rows-4 {
+      min-height: 9rem;
+    }
+
+    #right-container .table-wrap-half {
+      min-height: 0;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #right-container .table-wrap.table-rows-4 {
+      flex: 1 1 0;
+      min-height: 0;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    #insurance-table,
+    #accident-table,
+    #counsel-table {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      display: block;
+      box-sizing: border-box;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    #insurance-table table,
+    #accident-table table,
+    #counsel-table table {
+      table-layout: fixed;
+      width: 100%;
+      max-width: 100%;
+      font-size: 0.7rem;
+      min-width: 0;
+      box-sizing: border-box;
+      border-collapse: collapse;
+    }
+
+    #insurance-table table td,
+    #insurance-table table th,
+    #accident-table table td,
+    #accident-table table th,
+    #counsel-table table td,
+    #counsel-table table th {
+      border: 1px solid #333;
+      padding: 0.2rem 0.6rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    #insurance-table table thead th,
+    #accident-table table thead th,
+    #counsel-table table thead th {
+      font-weight: bold;
+      border-bottom: 2px solid #333;
+    }
+
+    #insurance-table table tbody tr,
+    #accident-table table tbody tr {
+      cursor: pointer;
+    }
+
+    #insurance-table table tbody tr:hover,
+    #accident-table table tbody tr:hover {
+      background: #e6f0fa;
+    }
+
+    #insurance-table table td.detail-amount,
+    #insurance-table table th.detail-amount {
+      text-align: right;
+    }
+
+    #insurance-table table,
+    #accident-table table {
+      border: 1px solid #333;
+    }
+
+    #insurance-table table th,
+    #insurance-table table td,
+    #accident-table table th,
+    #accident-table table td {
+      border: 1px dotted #999;
+    }
+
+    #insurance-table table thead th,
+    #accident-table table thead th {
+      text-align: center;
+      font-weight: bold;
+    }
+
+    #insurance-table table .ins-th-rowspan {
+      border-right: 1px dotted #999;
+    }
+
+    #insurance-table table thead th,
+    #accident-table table thead th {
+      border-bottom: 1px dotted #999;
+    }
+
+    #insurance-table table thead tr:nth-child(2) th {
+      border-left: 1px dotted #999;
+      border-right: 1px dotted #999;
+      border-bottom: 1px dotted #999;
+    }
+
+    #insurance-table table tbody tr:first-child td,
+    #accident-table table tbody tr:first-child td {
+      border-top: 1px dotted #999;
+    }
+
+    #insurance-table table tbody td,
+    #accident-table table tbody td {
+      border: 1px dotted #999;
+    }
+
+    #insurance-table table td.ins-cell-double {
+      white-space: normal;
+      vertical-align: top;
+    }
+
+    #insurance-table table td.ins-cell-double .ins-cell-line {
+      display: block;
+    }
+
+    #insurance-table table td.ins-cell-double .ins-cell-line:first-child {
+      border-bottom: 1px dotted #999;
+      padding-bottom: 0.15rem;
+      margin-bottom: 0.15rem;
+    }
+
+    #accident-table table tbody tr.accident-row-delete-selected {
+      background: #feb2b2 !important;
+    }
+
+    #accident-table table tbody tr.accident-row-edit,
+    #accident-table table tbody tr.accident-input-row {
+      background: #fff3cd !important;
+      box-shadow: inset 3px 0 0 #f6ad55;
+    }
+
+    #accident-table .accident-inline-input {
+      font-size: inherit;
+      padding: 0.2rem 0.4rem;
+      border: 1px solid #a0aec0;
+      border-radius: 4px;
+      background: #fff;
+      width: 100%;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    #accident-table .accident-inline-input:focus {
+      outline: none;
+      border-color: #3182ce;
+      box-shadow: 0 0 0 1px #3182ce;
+    }
+
     /* 배정자료 모달 */
     #assign-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 1000;
     }
-    #assign-modal.open { display: block; }
+
+    #assign-modal.open {
+      display: block;
+    }
+
     #assign-modal .assign-box {
       position: fixed;
       width: 50rem;
       max-width: 47.5%;
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       max-height: 90vh;
       display: flex;
       flex-direction: column;
     }
+
     #assign-modal .assign-box-header {
       display: flex;
       align-items: center;
@@ -189,38 +723,94 @@
       border-bottom: 1px solid #e0e0e0;
       gap: 1rem;
     }
+
     #assign-modal .assign-box-header h3 {
       margin: 0;
       font-size: 1rem;
       cursor: move;
       user-select: none;
     }
-    #assign-modal .assign-box .assign-table-wrap { flex: 1; overflow: auto; padding: 0 1rem 1rem; }
-    #assign-modal .assign-box table { font-size: 0.75rem; table-layout: fixed; width: 100%; }
+
+    #assign-modal .assign-box .assign-table-wrap {
+      flex: 1;
+      overflow: auto;
+      padding: 0 1rem 1rem;
+    }
+
+    #assign-modal .assign-box table {
+      font-size: 0.75rem;
+      table-layout: fixed;
+      width: 100%;
+    }
+
     #assign-modal .assign-box table td,
-    #assign-modal .assign-box table th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #assign-modal .assign-box table th {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     #assign-modal .assign-box table td.col-ellipsis,
-    #assign-modal .assign-box table th.col-ellipsis { max-width: 0; }
+    #assign-modal .assign-box table th.col-ellipsis {
+      max-width: 0;
+    }
+
     #assign-modal .assign-box table th.col-center,
-    #assign-modal .assign-box table td.col-center { text-align: center; }
+    #assign-modal .assign-box table td.col-center {
+      text-align: center;
+    }
+
     #assign-modal .assign-box table th.col-left,
-    #assign-modal .assign-box table td.col-left { text-align: left; }
-    #assign-modal .assign-box table thead th { background: #e8e8e8; color: #333; }
-    #assign-modal .assign-box table td.assign-inline-cell { white-space: nowrap; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-left { flex-shrink: 0; }
-    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-right { text-align: right; flex-shrink: 0; white-space: nowrap; }
-    #assign-modal .assign-box tbody tr { cursor: pointer; }
-    #assign-modal .assign-box tbody tr:hover { background: #e6f0fa; }
+    #assign-modal .assign-box table td.col-left {
+      text-align: left;
+    }
+
+    #assign-modal .assign-box table thead th {
+      background: #e8e8e8;
+      color: #333;
+    }
+
+    #assign-modal .assign-box table td.assign-inline-cell {
+      white-space: nowrap;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-left {
+      flex-shrink: 0;
+    }
+
+    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-right {
+      text-align: right;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    #assign-modal .assign-box tbody tr {
+      cursor: pointer;
+    }
+
+    #assign-modal .assign-box tbody tr:hover {
+      background: #e6f0fa;
+    }
 
     /* 도움말 모달 (배정자료와 동일 크기) */
     #help-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 1000;
     }
-    #help-modal.open { display: flex; align-items: center; justify-content: center; }
+
+    #help-modal.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     #help-modal .help-box {
       position: relative;
       width: 100rem;
@@ -228,108 +818,429 @@
       max-height: 90vh;
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
     }
-    #help-modal .help-box h3 { margin: 0; padding: 1rem 1.25rem; border-bottom: 1px solid #e0e0e0; font-size: 1rem; }
-    #help-modal .help-box .help-body { flex: 1; overflow: auto; display: flex; gap: 1.5rem; padding: 1rem 1.25rem; font-size: 0.9rem; line-height: 1.6; min-height: 0; }
-    #help-modal .help-box .help-col { flex: 1; min-width: 0; overflow: auto; }
-    #help-modal .help-box .help-body h4 { margin: 1rem 0 0.5rem; font-size: 0.95rem; color: #1e3a5f; }
-    #help-modal .help-box .help-body h4:first-child { margin-top: 0; }
-    #help-modal .help-box .help-body ul { margin: 0.25rem 0; padding-left: 1.25rem; }
-    #help-modal .help-box .help-body p { margin: 0.5rem 0; }
-    #help-modal .help-box .help-body .caution { color: #c53030; font-weight: 500; }
+
+    #help-modal .help-box h3 {
+      margin: 0;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 1rem;
+    }
+
+    #help-modal .help-box .help-body {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      gap: 1.5rem;
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      min-height: 0;
+    }
+
+    #help-modal .help-box .help-col {
+      flex: 1;
+      min-width: 0;
+      overflow: auto;
+    }
+
+    #help-modal .help-box .help-body h4 {
+      margin: 1rem 0 0.5rem;
+      font-size: 0.95rem;
+      color: #1e3a5f;
+    }
+
+    #help-modal .help-box .help-body h4:first-child {
+      margin-top: 0;
+    }
+
+    #help-modal .help-box .help-body ul {
+      margin: 0.25rem 0;
+      padding-left: 1.25rem;
+    }
+
+    #help-modal .help-box .help-body p {
+      margin: 0.5rem 0;
+    }
+
+    #help-modal .help-box .help-body .caution {
+      color: #c53030;
+      font-weight: 500;
+    }
 
     /* 인쇄 영역: 화면에서는 숨김, 인쇄 시에만 표시 */
-    #print-area { display: none; }
+    #print-area {
+      display: none;
+    }
+
     @media print {
-      @page { size: A4; margin: 2cm 1.5cm 1.5cm 1.5cm; }
+      @page {
+        size: A4;
+        margin: 2cm 1.5cm 1.5cm 1.5cm;
+      }
+
       body.print-output .header,
       body.print-output .body,
       body.print-output #help-modal,
-      body.print-output #assign-modal { display: none !important; }
-      body.print-output #print-area { display: block !important; }
-      body.print-output .footer { display: none !important; }
-      #print-area .print-main-title { font-size: 2em; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
-      #print-area .print-info-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.9rem; }
-      #print-area .print-page-info::after { content: "페이지 " counter(page) " / 총페이지 " counter(pages); }
-      #print-area table { border-collapse: collapse; width: 100%; font-size: 0.75rem; margin-bottom: 1rem; border: 1px solid #000; }
-      #print-area table th, #print-area table td { border: 0.5px solid #999; padding: 0.25rem 0.5rem; text-align: left; }
-      #print-area table th:first-child, #print-area table td:first-child { border-left: 1px solid #000; }
-      #print-area table th:last-child, #print-area table td:last-child { border-right: 1px solid #000; }
-      #print-area table th { background: #e8e8e8; font-weight: normal; color: #000; }
-      #print-area table thead th { border-bottom: 1px solid #000 !important; }
-      #print-area table tbody tr:first-child td { border-top: 1px solid #000 !important; }
-      #print-area table tbody td { color: #555; }
-      #print-area .print-section-title { font-weight: normal; margin: 0.75rem 0 0.25rem; font-size: 0.9rem; color: #000; }
-      #print-area .print-section-title:first-child { margin-top: 0; }
-      #print-area .detail-form { border: 1px solid #000; font-size: 0.75rem; }
-      #print-area .detail-form td, #print-area .detail-form th { border: 0.5px solid #999; padding: 0.2rem 0.5rem; vertical-align: middle; }
-      #print-area .detail-form .label-cell { background: #e8eef4; font-weight: 500; }
-      #print-area .detail-form .value-cell { background: #fff; }
-      #print-area .detail-form .section-label { background: #dde4ec; font-weight: normal; text-align: center; color: #000; }
-      #print-area .detail-form .main-title { background: #f0f4f8; font-weight: normal; color: #000; }
-      #print-area .detail-form .print-value { display: inline-block; min-width: 1em; }
-      #print-area table.print-insurance-table { border: 1px solid #000; }
-      #print-area table.print-insurance-table th, #print-area table.print-insurance-table td { border: 0.5px solid #999; }
-      #print-area table.print-insurance-table thead tr:nth-child(2) th { border-left: 0.5px solid #999; border-right: 0.5px solid #999; border-bottom: 1px solid #000; }
-      #print-area table.print-insurance-table th { text-align: center; color: #000; font-weight: normal; }
-      #print-area table.print-insurance-table td:nth-child(1), #print-area table.print-insurance-table td:nth-child(2) { text-align: left; }
-      #print-area table.print-insurance-table td:nth-child(n+4) { text-align: right; }
-      #print-area table.print-insurance-table td .print-ins-cell-line { display: block; }
-      #print-area table.print-insurance-table td .print-ins-cell-line:first-child { border-bottom: 0.5px solid #999; padding-bottom: 0.1rem; margin-bottom: 0.1rem; }
-      #print-area table.print-accident-table { border: 1px solid #000; }
-      #print-area table.print-accident-table th, #print-area table.print-accident-table td { border: 0.5px solid #999; }
-      #print-area table.print-accident-table th { color: #000; font-weight: normal; }
-      #print-area table.print-accident-table td:nth-child(2) { text-align: left; }
-      #print-area table.print-counsel-table { border: 1px solid #000; }
-      #print-area table.print-counsel-table th, #print-area table.print-counsel-table td { border: 0.5px solid #999; }
-      #print-area table.print-counsel-table th { color: #000; font-weight: normal; }
-      #print-area table.print-counsel-table tr.print-row-문 td:last-child { text-align: left; }
-      #print-area table.print-counsel-table tr.print-row-답 td:last-child { text-align: right; }
+      body.print-output #assign-modal {
+        display: none !important;
+      }
+
+      body.print-output #print-area {
+        display: block !important;
+      }
+
+      body.print-output .footer {
+        display: none !important;
+      }
+
+      #print-area .print-main-title {
+        font-size: 2em;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: #000;
+      }
+
+      #print-area .print-info-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      #print-area .print-page-info::after {
+        content: "페이지 " counter(page) " / 총페이지 " counter(pages);
+      }
+
+      #print-area table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid #000;
+      }
+
+      #print-area table th,
+      #print-area table td {
+        border: 0.5px solid #999;
+        padding: 0.25rem 0.5rem;
+        text-align: left;
+      }
+
+      #print-area table th:first-child,
+      #print-area table td:first-child {
+        border-left: 1px solid #000;
+      }
+
+      #print-area table th:last-child,
+      #print-area table td:last-child {
+        border-right: 1px solid #000;
+      }
+
+      #print-area table th {
+        background: #e8e8e8;
+        font-weight: normal;
+        color: #000;
+      }
+
+      #print-area table thead th {
+        border-bottom: 1px solid #000 !important;
+      }
+
+      #print-area table tbody tr:first-child td {
+        border-top: 1px solid #000 !important;
+      }
+
+      #print-area table tbody td {
+        color: #555;
+      }
+
+      #print-area .print-section-title {
+        font-weight: normal;
+        margin: 0.75rem 0 0.25rem;
+        font-size: 0.9rem;
+        color: #000;
+      }
+
+      #print-area .print-section-title:first-child {
+        margin-top: 0;
+      }
+
+      #print-area .detail-form {
+        border: 1px solid #000;
+        font-size: 0.75rem;
+      }
+
+      #print-area .detail-form td,
+      #print-area .detail-form th {
+        border: 0.5px solid #999;
+        padding: 0.2rem 0.5rem;
+        vertical-align: middle;
+      }
+
+      #print-area .detail-form .label-cell {
+        background: #e8eef4;
+        font-weight: 500;
+      }
+
+      #print-area .detail-form .value-cell {
+        background: #fff;
+      }
+
+      #print-area .detail-form .section-label {
+        background: #dde4ec;
+        font-weight: normal;
+        text-align: center;
+        color: #000;
+      }
+
+      #print-area .detail-form .main-title {
+        background: #f0f4f8;
+        font-weight: normal;
+        color: #000;
+      }
+
+      #print-area .detail-form .print-value {
+        display: inline-block;
+        min-width: 1em;
+      }
+
+      #print-area table.print-insurance-table {
+        border: 1px solid #000;
+      }
+
+      #print-area table.print-insurance-table th,
+      #print-area table.print-insurance-table td {
+        border: 0.5px solid #999;
+      }
+
+      #print-area table.print-insurance-table thead tr:nth-child(2) th {
+        border-left: 0.5px solid #999;
+        border-right: 0.5px solid #999;
+        border-bottom: 1px solid #000;
+      }
+
+      #print-area table.print-insurance-table th {
+        text-align: center;
+        color: #000;
+        font-weight: normal;
+      }
+
+      #print-area table.print-insurance-table td:nth-child(1),
+      #print-area table.print-insurance-table td:nth-child(2) {
+        text-align: left;
+      }
+
+      #print-area table.print-insurance-table td:nth-child(n+4) {
+        text-align: right;
+      }
+
+      #print-area table.print-insurance-table td .print-ins-cell-line {
+        display: block;
+      }
+
+      #print-area table.print-insurance-table td .print-ins-cell-line:first-child {
+        border-bottom: 0.5px solid #999;
+        padding-bottom: 0.1rem;
+        margin-bottom: 0.1rem;
+      }
+
+      #print-area table.print-accident-table {
+        border: 1px solid #000;
+      }
+
+      #print-area table.print-accident-table th,
+      #print-area table.print-accident-table td {
+        border: 0.5px solid #999;
+      }
+
+      #print-area table.print-accident-table th {
+        color: #000;
+        font-weight: normal;
+      }
+
+      #print-area table.print-accident-table td:nth-child(2) {
+        text-align: left;
+      }
+
+      #print-area table.print-counsel-table {
+        border: 1px solid #000;
+      }
+
+      #print-area table.print-counsel-table th,
+      #print-area table.print-counsel-table td {
+        border: 0.5px solid #999;
+      }
+
+      #print-area table.print-counsel-table th {
+        color: #000;
+        font-weight: normal;
+      }
+
+      #print-area table.print-counsel-table tr.print-row-문 td:last-child {
+        text-align: left;
+      }
+
+      #print-area table.print-counsel-table tr.print-row-답 td:last-child {
+        text-align: right;
+      }
     }
 
     /* 반응형: 태블릿 이하에서 좌우 영역 세로 배치 */
     @media (max-width: 992px) {
-      .body { flex-direction: column; }
-      .container { min-height: 20rem; }
-      #left-container .table-wrap:first-of-type { flex: 1 1 0; min-height: 12rem; }
-      #assign-modal .assign-box { width: 90%; max-width: none; max-height: 85vh; }
+      .body {
+        flex-direction: column;
+      }
+
+      .container {
+        min-height: 20rem;
+      }
+
+      #left-container .table-wrap:first-of-type {
+        flex: 1 1 0;
+        min-height: 12rem;
+      }
+
+      #assign-modal .assign-box {
+        width: 90%;
+        max-width: none;
+        max-height: 85vh;
+      }
     }
+
     /* 반응형: 모바일 - 헤더·푸터·패딩 축소 */
     @media (max-width: 768px) {
-      .header { padding: 0.75rem 1rem; font-size: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
-      .header .header-title { order: -1; width: 100%; text-align: center; margin: 0 0 0.25rem 0; }
-      .header .header-left { position: static; transform: none; }
-      .header .header-btns { position: static; transform: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; justify-content: center; }
-      .container { padding: 0.75rem; }
-      .container h3 { font-size: 0.95rem; }
-      .detail-form { font-size: 0.7rem; }
-      .detail-form .main-title { font-size: 0.9rem; }
-      .detail-form .detail-input, .detail-form select.detail-input { padding: 0.35rem 0.4rem; }
-      .footer { padding: 0.5rem 1rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.8rem; }
-      .footer .footer-btn { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
-      #assign-modal .assign-box { width: 95%; max-height: 90vh; }
-      .chat-input-row { padding: 0.4rem 0.5rem; gap: 0.25rem; }
-      .chat-send-btn { padding: 0.35rem 0.6rem; font-size: 0.85rem; }
+      .header {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .header .header-title {
+        order: -1;
+        width: 100%;
+        text-align: center;
+        margin: 0 0 0.25rem 0;
+      }
+
+      .header .header-left {
+        position: static;
+        transform: none;
+      }
+
+      .header .header-btns {
+        position: static;
+        transform: none;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem;
+        justify-content: center;
+      }
+
+      .container {
+        padding: 0.75rem;
+      }
+
+      .container h3 {
+        font-size: 0.95rem;
+      }
+
+      .detail-form {
+        font-size: 0.7rem;
+      }
+
+      .detail-form .main-title {
+        font-size: 0.9rem;
+      }
+
+      .detail-form .detail-input,
+      .detail-form select.detail-input {
+        padding: 0.35rem 0.4rem;
+      }
+
+      .footer {
+        padding: 0.5rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .footer .footer-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+      }
+
+      #assign-modal .assign-box {
+        width: 95%;
+        max-height: 90vh;
+      }
+
+      .chat-input-row {
+        padding: 0.4rem 0.5rem;
+        gap: 0.25rem;
+      }
+
+      .chat-send-btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+      }
     }
+
     @media (max-width: 576px) {
-      .header { padding: 0.5rem 0.75rem; font-size: 0.9rem; }
-      .header .header-checkbox { font-size: 0.8rem; }
-      .container { padding: 0.5rem; }
-      .container h3 { font-size: 0.9rem; }
-      #info-table table, #insurance-table table, #accident-table table { font-size: 0.65rem; }
-      .detail-form td, .detail-form th { padding: 0.15rem 0.35rem; }
-      .table-wrap { border-radius: 3px; }
+      .header {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+      }
+
+      .header .header-checkbox {
+        font-size: 0.8rem;
+      }
+
+      .container {
+        padding: 0.5rem;
+      }
+
+      .container h3 {
+        font-size: 0.9rem;
+      }
+
+      #info-table table,
+      #insurance-table table,
+      #accident-table table {
+        font-size: 0.65rem;
+      }
+
+      .detail-form td,
+      .detail-form th {
+        padding: 0.15rem 0.35rem;
+      }
+
+      .table-wrap {
+        border-radius: 3px;
+      }
     }
   </style>
 </head>
+
 <body>
   <div id="print-area" aria-hidden="true"></div>
   <header class="header">
-    <div class="header-left">
+    <div class="header-left" style="display: flex; align-items: center;">
       <button type="button" id="btn-help">도움말</button>
+      <input type="password" id="backup-pwd" placeholder="p/w"
+        style="margin-left: 10px; width: 60px; padding: 0.2rem; font-size: 0.75rem; box-sizing: border-box; height: 1.6rem;"
+        title="백업/복원 암호" />
+      <button type="button" id="btn-backup" style="margin-left: 5px; height: 1.6rem; vertical-align: top;">백업</button>
+      <button type="button" id="btn-restore" style="margin-left: 5px; height: 1.6rem; vertical-align: top;">복원</button>
     </div>
     <span class="header-title">KB 고객관리</span>
     <div class="header-btns">
@@ -345,18 +1256,23 @@
           <h4>1. 필요한 파일 및 로드</h4>
           <p>다음 Excel 파일을 앱과 같은 폴더에 두면 페이지 로드 시 자동으로 읽습니다.</p>
           <ul>
-            <li><strong>kb023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송, DB종류, 연락처 등이 있으면 화면·필터에 사용됩니다.</li>
-            <li><strong>kb023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로 표시됩니다. 월보험료·납입보험료·총보험료·해지환급금·대출금은 금액(천 단위 콤마)으로 표시됩니다.</li>
-            <li><strong>kb023_accident.xlsx</strong> — 사고/사전교섭 데이터. 계약자명·주민번호로 필터됩니다. accident 모드(입력/수정/삭제)에서 완료 시 /api/accident로 저장할 수 있습니다.</li>
-            <li><strong>kb023_counse.xlsx</strong> — 과거 상담 기록. 계약자명·주민번호로 필터되어 counsel 영역에 문/답 형식으로 표시됩니다.</li>
+            <li><strong>kb023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송,
+              DB종류, 연락처 등이 있으면 화면·필터에 사용됩니다.</li>
+            <li><strong>kb023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로
+              표시됩니다. 월보험료·납입보험료·총보험료·해지환급금·대출금은 금액(천 단위 콤마)으로 표시됩니다.</li>
+            <li><strong>kb023_accident.xlsx</strong> — 사고/사전교섭 데이터. 계약자명·주민번호로 필터됩니다. accident 모드(입력/수정/삭제)에서 완료 시
+              /api/accident로 저장할 수 있습니다.</li>
+            <li><strong>kb023_counsel.xlsx</strong> — 과거 상담 기록. 계약자명·주민번호로 필터되어 counsel 영역에 문/답 형식으로 표시됩니다.</li>
             <li><strong>kb023_products.xlsx</strong> — 상품 목록. 보험사·상품종류·상품명 등이 있으면 DB고객 세부내용의 상품종류·상품명 드롭다운에 사용됩니다.</li>
           </ul>
-          <p>브라우저 개발자 도구(F12) → 콘솔에서 각 파일 로드 시 컬럼 목록과 "컬럼 없음(매칭안됨)" 경고를 확인할 수 있습니다. 시트 첫 행(헤더)과 코드에서 기대하는 컬럼명이 맞는지 확인하세요.</p>
+          <p>브라우저 개발자 도구(F12) → 콘솔에서 각 파일 로드 시 컬럼 목록과 "컬럼 없음(매칭안됨)" 경고를 확인할 수 있습니다. 시트 첫 행(헤더)과 코드에서 기대하는 컬럼명이 맞는지
+            확인하세요.</p>
 
           <h4>2. information 테이블</h4>
           <ul>
             <li>페이지를 열면 information 시트가 왼쪽 상단 테이블에 표시됩니다.</li>
-            <li><strong>행을 클릭</strong>하면 해당 계약자의 DB고객 세부내용, insurance, accident, counsel이 오른쪽/아래 영역에 표시됩니다. 동의/부동의는 information의 "문자전송" 컬럼 값으로 채워집니다.</li>
+            <li><strong>행을 클릭</strong>하면 해당 계약자의 DB고객 세부내용, insurance, accident, counsel이 오른쪽/아래 영역에 표시됩니다. 동의/부동의는
+              information의 "문자전송" 컬럼 값으로 채워집니다.</li>
           </ul>
 
           <h4>3. DB고객 세부내용</h4>
@@ -365,7 +1281,9 @@
             <li><strong>조회</strong>: 선택한 행의 세부내용·보험 데이터를 합쳐서 폼에 채웁니다. 동의/부동의는 information의 문자전송 값으로 설정됩니다.</li>
             <li><strong>입력</strong>: 폼을 비운 뒤 새로 입력하고 완료 시 저장합니다(백엔드 연동 시).</li>
             <li><strong>수정/삭제</strong>: 선택한 행 데이터를 수정하거나 삭제한 뒤 완료로 반영합니다.</li>
-            <li><strong>출력</strong>: 출력을 선택한 뒤 완료를 누르면 선택한 행 기준으로 DB고객 세부내용·kb023_insurance·kb023_accident·kb023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및 바닥글</strong> 옵션을 해제하세요.</li>
+            <li><strong>출력</strong>: 출력을 선택한 뒤 완료를 누르면 선택한 행 기준으로 DB고객
+              세부내용·kb023_insurance·kb023_accident·kb023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및
+                바닥글</strong> 옵션을 해제하세요.</li>
             <li>배정일자·종료일자·납입만기 입력란에 숫자 6자리(yymmdd) 또는 8자리(yyyymmdd)를 입력한 뒤 포커스를 벗어나면 "yy/mm/dd" 형식으로 자동 변환됩니다.</li>
           </ul>
 
@@ -379,21 +1297,26 @@
           <h4>5. accident 테이블</h4>
           <ul>
             <li>계약자를 선택한 뒤 드롭다운(입력/수정/삭제)과 완료 버튼이 활성화됩니다.</li>
-            <li><strong>입력</strong>: 마지막 행에 사고일자·사고내용 등을 입력합니다. 사고일자란에 6자리 또는 8자리 숫자만 입력 후 포커스를 벗기면 "yy/mm/dd"로 변환됩니다. 완료를 누르면 /api/accident로 전송되어 xlsx에 저장되고 테이블이 다시 그려집니다.</li>
-            <li><strong>수정</strong>: 수정할 행을 클릭하면 해당 행이 편집 가능한 입력란으로 바뀝니다. 사고일자·사고내용 등을 수정한 뒤 완료를 누르면 화면 데이터가 갱신되고 테이블이 재출력됩니다.</li>
+            <li><strong>입력</strong>: 마지막 행에 사고일자·사고내용 등을 입력합니다. 사고일자란에 6자리 또는 8자리 숫자만 입력 후 포커스를 벗기면 "yy/mm/dd"로 변환됩니다.
+              완료를 누르면 /api/accident로 전송되어 xlsx에 저장되고 테이블이 다시 그려집니다.</li>
+            <li><strong>수정</strong>: 수정할 행을 클릭하면 해당 행이 편집 가능한 입력란으로 바뀝니다. 사고일자·사고내용 등을 수정한 뒤 완료를 누르면 화면 데이터가 갱신되고 테이블이
+              재출력됩니다.</li>
             <li><strong>삭제</strong>: 삭제할 행을 클릭하면 행이 강조 표시됩니다. 완료를 누르면 "해당 행을 삭제합니다" 메시지가 뜨고, 확인 후 테이블이 다시 그려집니다.</li>
           </ul>
 
           <h4>6. counsel(상담)</h4>
           <ul>
-            <li><strong>과거 상담</strong>: 선택한 계약자의 counsel 데이터가 문/답 말풍선으로 표시됩니다. 말풍선 옆에 "yy/mm/dd (요일) HH:MM" 형식으로 표시됩니다.</li>
-            <li><strong>오늘 상담</strong>: 문(가입자)/답(상담자) 드롭다운을 선택한 뒤 메시지를 입력하고 전송합니다. 문으로 전송하면 드롭다운이 답으로, 답으로 전송하면 문으로 자동 변경됩니다. 전송 시 /api/counsel로 저장됩니다.</li>
+            <li><strong>과거 상담</strong>: 선택한 계약자의 counsel 데이터가 문/답 말풍선으로 표시됩니다. 말풍선 옆에 "yy/mm/dd (요일) HH:MM" 형식으로 표시됩니다.
+            </li>
+            <li><strong>오늘 상담</strong>: 문(가입자)/답(상담자) 드롭다운을 선택한 뒤 메시지를 입력하고 전송합니다. 문으로 전송하면 드롭다운이 답으로, 답으로 전송하면 문으로 자동
+              변경됩니다. 전송 시 /api/counsel로 저장됩니다.</li>
             <li>말풍선 너비는 "오늘 상담 메시지 입력" 입력 필드 너비와 맞춰지며, 배경색은 50% 투명으로 표시됩니다.</li>
           </ul>
 
           <h4>7. 배정자료 모달</h4>
           <ul>
-            <li>헤더의 "배정자료" 버튼을 누르면 information·insurance 데이터를 배정일자·계약자 순으로 모달에 표시합니다. seq/배정일자/문자전송/DB종류/계약자명/주민번호/연락처/증권번호/납입만기가 한 줄로 표시됩니다.</li>
+            <li>헤더의 "배정자료" 버튼을 누르면 information·insurance 데이터를 배정일자·계약자 순으로 모달에 표시합니다.
+              seq/배정일자/문자전송/DB종류/계약자명/주민번호/연락처/증권번호/납입만기가 한 줄로 표시됩니다.</li>
             <li>모달은 헤더를 드래그하거나 방향키로 이동할 수 있습니다. <strong>원위치</strong> 버튼을 누르면 화면 중앙으로 돌아갑니다.</li>
             <li>모달 영역 밖(배경)을 클릭하면 모달이 닫힙니다. 테이블 행을 클릭하면 모달이 닫히고 해당 information 행이 선택된 상태로 메인 화면에 표시됩니다.</li>
           </ul>
@@ -406,9 +1329,11 @@
         <div class="help-col help-col-right">
           <h4>9. 주의사항</h4>
           <ul>
-            <li class="caution">Excel 파일은 앱과 같은 경로에 두어야 하며, 시트의 첫 행은 반드시 헤더(컬럼명)로 사용됩니다. 컬럼명이 코드와 다르면 해당 기능이 동작하지 않을 수 있으므로, 도움말의 "필요한 파일 및 로드"와 콘솔 로그를 참고해 맞추세요.</li>
+            <li class="caution">Excel 파일은 앱과 같은 경로에 두어야 하며, 시트의 첫 행은 반드시 헤더(컬럼명)로 사용됩니다. 컬럼명이 코드와 다르면 해당 기능이 동작하지 않을 수
+              있으므로, 도움말의 "필요한 파일 및 로드"와 콘솔 로그를 참고해 맞추세요.</li>
             <li class="caution">주민번호·연락처 등 개인정보가 화면에 표시됩니다. 사용 환경에 맞게 접근 제한, 화면 보호 등 보안을 유지하세요.</li>
-            <li class="caution">DB고객 세부내용의 입력/수정/삭제, accident 입력, counsel 전송 등은 서버 API(/api/accident, /api/counsel 등)와 연동됩니다. Python 서버(app.py)를 실행한 상태에서 사용해야 저장이 반영됩니다. 저장 실패 시 알림이 뜨며 데이터가 반영되지 않을 수 있습니다.</li>
+            <li class="caution">DB고객 세부내용의 입력/수정/삭제, accident 입력, counsel 전송 등은 서버 API(/api/accident, /api/counsel 등)와
+              연동됩니다. Python 서버(app.py)를 실행한 상태에서 사용해야 저장이 반영됩니다. 저장 실패 시 알림이 뜨며 데이터가 반영되지 않을 수 있습니다.</li>
           </ul>
         </div>
       </div>
@@ -420,7 +1345,8 @@
         <h3>배정자료</h3>
       </div>
       <div class="assign-table-wrap">
-        <div id="assign-table-inner" class="placeholder">배정자료 버튼을 누르면 information/insurance 데이터를 배정일자·계약자순으로 표시합니다.</div>
+        <div id="assign-table-inner" class="placeholder">배정자료 버튼을 누르면 information/insurance 데이터를 배정일자·계약자순으로 표시합니다.
+        </div>
       </div>
     </div>
   </div>
@@ -436,9 +1362,12 @@
         <table class="detail-form">
           <tbody>
             <tr>
-              <td colspan="7" class="main-title section-border" style="border-right: none; font-size: 1rem; font-weight: bold; text-align: left;">DB고객 세부내용</td>
-              <td colspan="2" class="section-border" style="vertical-align: middle; text-align: right; background: #f0f4f8; border-left: none;">
-                <select id="detail-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;" disabled>
+              <td colspan="7" class="main-title section-border"
+                style="border-right: none; font-size: 1rem; font-weight: bold; text-align: left;">DB고객 세부내용</td>
+              <td colspan="2" class="section-border"
+                style="vertical-align: middle; text-align: right; background: #f0f4f8; border-left: none;">
+                <select id="detail-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;"
+                  disabled>
                   <option value="조회">조회</option>
                   <option value="입력">입력</option>
                   <option value="수정" id="detail-mode-modify" disabled>수정</option>
@@ -451,11 +1380,14 @@
             <tr>
               <td rowspan="2" class="section-label">배정구분</td>
               <td class="label-cell">배정일자</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="배정일자" placeholder="yy/mm/dd" maxlength="10" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="배정일자" placeholder="yy/mm/dd"
+                  maxlength="10" /></td>
               <td class="label-cell">종료일자</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="종료일자" placeholder="yy/mm/dd" maxlength="10" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="종료일자" placeholder="yy/mm/dd"
+                  maxlength="10" /></td>
               <td class="label-cell">DB종류</td>
-              <td class="value-cell" colspan="2"><input type="text" class="detail-input" data-field="DB종류" placeholder="DB종류" /></td>
+              <td class="value-cell" colspan="2"><input type="text" class="detail-input" data-field="DB종류"
+                  placeholder="DB종류" /></td>
               <td class="value-cell" style="text-align: center;">
                 <label><input type="checkbox" id="detail-db-disagree" name="db-agree" /> 비동의</label>
               </td>
@@ -477,19 +1409,23 @@
             <tr>
               <td rowspan="2" class="section-label">계약내용</td>
               <td class="label-cell">계약자명</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="계약자명" placeholder="계약자명" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="계약자명" placeholder="계약자명" />
+              </td>
               <td class="label-cell">주민번호</td>
-              <td class="value-cell"><input type="hidden" id="jumin-full" /><input type="text" id="jumin-input" class="detail-input" data-field="주민번호" placeholder="주민번호" maxlength="14" autocomplete="off" /></td>
+              <td class="value-cell"><input type="hidden" id="jumin-full" /><input type="text" id="jumin-input"
+                  class="detail-input" data-field="주민번호" placeholder="주민번호" maxlength="14" autocomplete="off" /></td>
               <td class="label-cell">연락처</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="연락처" placeholder="연락처" /></td>
               <td class="label-cell">피보험자</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="피보험자" placeholder="피보험자" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="피보험자" placeholder="피보험자" />
+              </td>
             </tr>
             <tr>
               <td class="label-cell">직업</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="직업" placeholder="직업" /></td>
               <td class="label-cell">주소</td>
-              <td class="value-cell" colspan="5"><input type="text" class="detail-input" data-field="주소" placeholder="주소" /></td>
+              <td class="value-cell" colspan="5"><input type="text" class="detail-input" data-field="주소"
+                  placeholder="주소" /></td>
             </tr>
             <tr>
               <td rowspan="4" class="section-label">계약상세</td>
@@ -508,29 +1444,39 @@
             </tr>
             <tr>
               <td class="label-cell">증권번호</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="증권번호" placeholder="증권번호" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="증권번호" placeholder="증권번호" />
+              </td>
               <td class="label-cell">납입만기</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="납입만기" placeholder="yy/mm/dd" maxlength="10" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="납입만기" placeholder="yy/mm/dd"
+                  maxlength="10" /></td>
               <td class="label-cell">주요담보</td>
-              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주요담보" placeholder="주요담보" /></td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주요담보"
+                  placeholder="주요담보" /></td>
             </tr>
             <tr>
               <td class="label-cell">월보험료</td>
-              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="월보험료" inputmode="numeric" placeholder="0" /></td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="월보험료"
+                  inputmode="numeric" placeholder="0" /></td>
               <td class="label-cell">납입방법</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="납입방법" placeholder="이체/카드" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="납입방법" placeholder="이체/카드" />
+              </td>
               <td class="label-cell">납입보험료</td>
-              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="납입보험료" inputmode="numeric" placeholder="0" /></td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="납입보험료"
+                  inputmode="numeric" placeholder="0" /></td>
               <td class="label-cell">총보험료</td>
-              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="총보험료" inputmode="numeric" placeholder="0" /></td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="총보험료"
+                  inputmode="numeric" placeholder="0" /></td>
             </tr>
             <tr>
               <td class="label-cell">해지환급금</td>
-              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="해지환급금" inputmode="numeric" placeholder="0" /></td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="해지환급금"
+                  inputmode="numeric" placeholder="0" /></td>
               <td class="label-cell">대출금</td>
-              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="대출금" inputmode="numeric" placeholder="0" /></td>
+              <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="대출금"
+                  inputmode="numeric" placeholder="0" /></td>
               <td class="label-cell">참고사항</td>
-              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="참고사항" placeholder="참고사항" /></td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="참고사항"
+                  placeholder="참고사항" /></td>
             </tr>
           </tbody>
         </table>
@@ -543,27 +1489,36 @@
     <section class="container" id="right-container">
       <div class="right-top" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
         <h3>counsel</h3>
-        <div class="counsel-section" style="display: flex; flex-direction: column; flex: 0 0 auto; min-height: 0; gap: 0;">
-          <div class="counsel-past-wrap" style="min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px;">
-            <div id="counsel-past-messages" class="chat-messages" style="flex: 1; min-height: 0; overflow-y: auto;"><div class="counsel-empty-text">과거 상담 내용이 없습니다.</div></div>
+        <div class="counsel-section"
+          style="display: flex; flex-direction: column; flex: 0 0 auto; min-height: 0; gap: 0;">
+          <div class="counsel-past-wrap"
+            style="min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px;">
+            <div id="counsel-past-messages" class="chat-messages" style="flex: 1; min-height: 0; overflow-y: auto;">
+              <div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>
+            </div>
           </div>
-          <div class="counsel-chat-box" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
-            <div style="font-size: 0.85rem; color: #2c5282; padding: 0.25rem 0.5rem; font-weight: bold;">오늘 상담 (기록)</div>
+          <div class="counsel-chat-box"
+            style="display: flex; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
+            <div style="font-size: 0.85rem; color: #2c5282; padding: 0.25rem 0.5rem; font-weight: bold;">오늘 상담 (기록)
+            </div>
             <div class="chat-messages" id="counsel-today-messages"></div>
             <div class="chat-input-row">
               <select id="counsel-send-type" class="chat-send-type" title="문(가입자) / 답(상담자)">
                 <option value="문">문(가입자)</option>
                 <option value="답">답(상담자)</option>
               </select>
-              <input type="text" class="chat-input counsel-chat-input" id="counsel-chat-input" placeholder="오늘 상담 메시지 입력" />
+              <input type="text" class="chat-input counsel-chat-input" id="counsel-chat-input"
+                placeholder="오늘 상담 메시지 입력" />
               <button type="button" class="chat-send-btn" id="counsel-send-btn">전송</button>
             </div>
           </div>
         </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem;">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem;">
           <h3 style="margin: 0;">accident</h3>
           <span>
-            <select id="accident-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;" disabled>
+            <select id="accident-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;"
+              disabled>
               <option value="입력">입력</option>
               <option value="수정">수정</option>
               <option value="삭제">삭제</option>
@@ -580,6 +1535,7 @@
 
   <footer class="footer">
     <span>KB 고객관리 &middot; 세부내용 관리</span>
+    <span class="footer-center-text">주식회사 나눔과 어울림</span>
     <button type="button" class="footer-btn" id="btn-work-end">작업종료</button>
   </footer>
 
@@ -623,7 +1579,7 @@
      * kb023_information.xlsx → info-table (시트 1:1)
      * kb023_insurance.xlsx   → insurance-table (시트 헤더 1:1, 계약자별 필터)
      * kb023_accident.xlsx    → accident-table (시트 컬럼 1:1, 계약자별 필터) + /api/accident 저장
-     * kb023_counse.xlsx      → 과거 상담(문/답 형식) + 오늘 상담 전송 시 /api/counsel 저장
+     * kb023_counsel.xlsx     → 과거 상담(문/답 형식) + 오늘 상담 전송 시 /api/counsel 저장
      * kb023_products.xlsx    → 상품종류/상품명 드롭다운 (테이블 아님)
      */
     function formatCellForInfo(cell) {
@@ -651,7 +1607,7 @@
       if (match) return match[1].slice(-2) + '/' + match[2].padStart(2, '0') + '/' + match[3].padStart(2, '0');
       return s.replace(/</g, '&lt;');
     }
-    // xlsx 컬럼 ↔ 테이블 매칭 검증 (디버그 콘솔)
+    // 백엔드 API로부터 데이터를 로드하여 테이블을 구성합니다.
     function debugXlsxColumns(name, headers, expectedKeys) {
       if (!headers || !Array.isArray(headers)) return;
       console.log('[KB023] ' + name + ' 로드 컬럼:', headers.length, headers);
@@ -716,7 +1672,9 @@
       html += '</tr></thead><tbody>';
       indices.forEach(function (rowIndex) {
         var row = rows[rowIndex];
-        html += '<tr data-row-index="' + rowIndex + '">';
+        var isSelected = (rowIndex === window._selectedInfoRowIndex);
+        var clsStr = isSelected ? ' class="row-selected"' : '';
+        html += '<tr data-row-index="' + rowIndex + '"' + clsStr + '>';
         displayIndices.forEach(function (colIdx, i) {
           var cell = row[colIdx];
           var text = (cell != null && cell !== '') ? formatCellForInfo(cell) : '';
@@ -737,21 +1695,18 @@
         });
       }
     }
-    function renderInfoTable(workbook) {
+    function renderInfoTable(data) {
       var el = document.getElementById('info-table');
       if (!el) return;
-      if (!workbook || !workbook.SheetNames || !workbook.SheetNames.length) {
-        el.innerHTML = '<div class="placeholder">유효한 시트가 없습니다.</div>';
-        return;
-      }
-      var sheet = workbook.Sheets[workbook.SheetNames[0]];
-      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-      if (!data || data.length === 0) {
+      if (!data || !data.headers || !data.rows || data.rows.length === 0) {
         el.innerHTML = '<div class="placeholder">데이터가 없습니다.</div>';
         return;
       }
-      var headers = data[0].map(function (h) { var s = h != null ? String(h).trim() : ''; return s === '주민등록번호' ? '주민번호' : s; });
-      var rows = data.slice(1);
+      var headers = data.headers;
+      // rows가 객체 배열이므로 배열의 배열로 변환하여 기존 함수 호환성 유지
+      var rows = data.rows.map(function (rowDict) {
+        return headers.map(function (h) { return rowDict[h] != null ? rowDict[h] : ''; });
+      });
       debugXlsxColumns('information', headers, ['계약자명', '주민번호', '배정일자', '문자전송', 'DB종류', '연락처']);
       window._infoTableData = { headers: headers, rows: rows };
       refreshInfoTableDisplay();
@@ -787,96 +1742,54 @@
       });
     })();
 
-    // kb023_information.xlsx → info-table
+    // /api/data/information 호출 후 info-table 파싱
     function tryAutoLoadInfo() {
-      fetch('kb023_information.xlsx')
-        .then(function (r) { return r.arrayBuffer(); })
-        .then(function (ab) { return renderInfoTable(XLSX.read(ab, { type: 'array' })); })
-        .catch(function () {});
+      fetch('/api/data/information')
+        .then(function (r) { return r.json(); })
+        .then(function (data) { return renderInfoTable(data); })
+        .catch(function () { });
     }
     tryAutoLoadInfo();
 
-    // kb023_insurance.xlsx 로드 후 키(계약자명/주민번호)로 조회용 저장
+    // 서버에서 insurance 데이터 가져오기
     window._insuranceData = null;
     function tryAutoLoadInsurance() {
-      fetch('kb023_insurance.xlsx')
-        .then(function (r) { return r.arrayBuffer(); })
-        .then(function (ab) {
-          var wb = XLSX.read(ab, { type: 'array' });
-          if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
-          var sheet = wb.Sheets[wb.SheetNames[0]];
-          var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-          if (!data || data.length < 2) return;
-          var headers = data[0].map(function (h) {
-            var s = h != null ? String(h).trim() : '';
-            if (s === '보험종류') return '상품종류';
-            if (s === '주민등록번호') return '주민번호';
-            return s;
-          });
-          var rows = data.slice(1).map(function (row) {
-            var o = {};
-            headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
-            return o;
-          });
-          debugXlsxColumns('insurance', headers, ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '월보험료', '납입보험료', '총보험료', '해지환급금', '대출금']);
-          window._insuranceData = { headers: headers, rows: rows };
+      fetch('/api/data/insurance')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.headers) return;
+          debugXlsxColumns('insurance', data.headers, ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '월보험료', '납입보험료', '총보험료', '해지환급금', '대출금']);
+          window._insuranceData = data;
         })
-        .catch(function () {});
+        .catch(function () { });
     }
     tryAutoLoadInsurance();
 
-    // kb023_accident.xlsx 로드 (선택 계약자명/주민번호 기준 출력용)
+    // 서버에서 accident 데이터 가져오기
     window._accidentData = null;
     function tryAutoLoadAccident() {
-      return fetch('kb023_accident.xlsx')
-        .then(function (r) { return r.arrayBuffer(); })
-        .then(function (ab) {
-          var wb = XLSX.read(ab, { type: 'array' });
-          if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
-          var sheet = wb.Sheets[wb.SheetNames[0]];
-          var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-          if (!data || data.length < 2) return;
-          var headers = data[0].map(function (h) {
-            var s = h != null ? String(h).trim() : '';
-            if (s === 'Q/A') return '문/답';
-            if (s === '주민등록번호') return '주민번호';
-            return s;
-          });
-          var rows = data.slice(1).map(function (row, rowIdx) {
-            var o = {};
-            headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
-            o._fileRowIndex = rowIdx;
-            return o;
-          });
-          debugXlsxColumns('accident', headers, ['계약자명', '주민번호', '사고일자', '사고내용', '기록일자', '문/답']);
-          window._accidentData = { headers: headers, rows: rows };
+      return fetch('/api/data/accident')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.headers) return;
+          debugXlsxColumns('accident', data.headers, ['계약자명', '주민번호', '사고일자', '사고내용', '기록일자', '문/답']);
+          window._accidentData = data;
         })
-        .catch(function () {});
+        .catch(function () { });
     }
     tryAutoLoadAccident();
 
-    // kb023_counse.xlsx 로드 (계약자명/주민번호 기준 counsel 테이블·대화상자)
+    // 서버에서 counsel 데이터 가져오기 (계약자명/주민번호 기준 counsel 테이블·대화상자)
     window._counselData = null;
-    function loadCounselFromAb(ab) {
-      var wb = XLSX.read(ab, { type: 'array' });
-      if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
-      var sheet = wb.Sheets[wb.SheetNames[0]];
-      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-      if (!data || data.length < 2) return;
-      var headers = data[0].map(function (h) { var s = h != null ? String(h).trim() : ''; return s === '주민등록번호' ? '주민번호' : s; });
-      var rows = data.slice(1).map(function (row) {
-        var o = {};
-        headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
-        return o;
-      });
-      debugXlsxColumns('counsel', headers, ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용']);
-      window._counselData = { headers: headers, rows: rows };
-    }
     function tryAutoLoadCounsel() {
-      fetch('kb023_counse.xlsx')
-        .then(function (r) { return r.arrayBuffer(); })
-        .then(loadCounselFromAb)
-        .catch(function () {});
+      fetch('/api/data/counsel')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || !data.headers) return;
+          debugXlsxColumns('counsel', data.headers, ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용']);
+          window._counselData = data;
+        })
+        .catch(function () { });
     }
     tryAutoLoadCounsel();
 
@@ -889,11 +1802,11 @@
         if (!isNaN(n)) return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         return String(val).replace(/</g, '&lt;');
       }
-      if (typeof val === 'number' && val >= 1 && val < 3000000) {
-        var d = XLSX.SSF.parse_date_code(val);
-        if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
-      }
-      return String(val).replace(/</g, '&lt;');
+      var s = String(val);
+      var match = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (match) return match[1].slice(-2) + '/' + match[2].padStart(2, '0') + '/' + match[3].padStart(2, '0');
+
+      return s.replace(/</g, '&lt;');
     }
     window._formatInsuranceCell = formatInsuranceCell;
     var EXCLUDE_COLUMNS = { '계약자명': 1, '주민번호': 1, '참고사항': 1, '주의사항': 1 };
@@ -935,7 +1848,9 @@
       html += '<th>납입보험료</th><th>총보험료</th><th>해지환급금</th><th>대출금</th>';
       html += '</tr></thead><tbody>';
       rows.forEach(function (row, idx) {
-        html += '<tr data-row-index="' + idx + '">';
+        var isSelected = (idx === window._selectedInsuranceRowIndex);
+        var clsStr = isSelected ? ' class="row-selected"' : '';
+        html += '<tr data-row-index="' + idx + '"' + clsStr + '>';
         INSURANCE_COL_PAIRS.forEach(function (keys) {
           var parts = keys.map(function (key) { return formatInsuranceCell(row[key] != null ? row[key] : '', key); });
           var isAmount = keys.some(function (k) { return INSURANCE_AMOUNT_KEYS[k]; });
@@ -970,16 +1885,21 @@
     // kb023_accident.xlsx → accident-table (시트 헤더·행 1:1)
     function formatAccidentCell(row, key) {
       var cell = row[key] != null ? row[key] : '';
-      if (key === '기록시간') return excelSerialToHhMmSs(cell || row['기록일자']);
       if (key === '문/답' || key === 'Q/A') return (cell != null ? String(cell) : '').replace(/</g, '&lt;');
-      if (typeof cell === 'number') {
-        if (cell >= 1 && cell < 3000000) {
-          var d = XLSX.SSF.parse_date_code(cell);
-          if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
-        }
-        if (cell > 0 && cell < 1) return excelSerialToHhMmSs(cell);
+
+      var s = String(cell);
+      if (key === '기록시간') {
+        if (typeof cell === 'number') return excelSerialToHhMmSs(cell || row['기록일자']);
+        var dtMatch = s.match(/^(\d{4}-\d{2}-\d{2} )?(\d{2}):(\d{2})/);
+        if (dtMatch) return dtMatch[2] + ':' + dtMatch[3] + (s.split(':').length > 2 ? ':' + s.split(':')[2].slice(0, 2) : '');
+        return excelSerialToHhMmSs(row['기록일자']);
       }
-      return String(cell).replace(/</g, '&lt;');
+      if (typeof cell === 'number' && cell > 0 && cell < 1) return excelSerialToHhMmSs(cell);
+
+      var match = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+      if (match) return match[1].slice(-2) + '/' + match[2].padStart(2, '0') + '/' + match[3].padStart(2, '0');
+
+      return s.replace(/</g, '&lt;');
     }
     window._formatAccidentCell = formatAccidentCell;
     // accident 테이블 컬럼 너비 비율: 1열 8, 2열 84, 3열 8, 나머지 8 (합으로 정규화)
@@ -1028,7 +1948,7 @@
       window._currentAccidentRows.forEach(function (row, idx) {
         var isEditRow = (mode === '수정' && window._accidentEditRowIndex === idx);
         var isDeleteSelected = (mode === '삭제' && window._accidentDeleteSelectedRowIndex === idx);
-        var trCls = isDeleteSelected ? ' accident-row-delete-selected' : '';
+        var trCls = isDeleteSelected ? ' accident-row-delete-selected' : (isEditRow ? ' accident-row-edit' : '');
         html += '<tr data-row-index="' + idx + '" class="' + trCls.trim() + '">';
         displayHeaders.forEach(function (key) {
           if (isEditRow) {
@@ -1091,7 +2011,7 @@
       var el = document.getElementById('counsel-past-messages');
       if (!el) return;
       if (!counselRows || counselRows.length === 0) {
-        el.innerHTML = '<div class="placeholder">해당 계약자의 과거 상담이 없습니다.</div>';
+        el.innerHTML = '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
         return;
       }
       var detailKey = '세부내용';
@@ -1099,12 +2019,38 @@
       var dateKey = '기록일자';
       var timeKey = '기록시간';
       var list = [];
+      var now = new Date();
+      var todayYYYYMMDD = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+
       counselRows.forEach(function (row) {
         var detail = (row[detailKey] != null ? String(row[detailKey]) : (row['상담내용'] != null ? String(row['상담내용']) : '')).trim();
         if (!detail) return;
         var qaVal = (row[qaKey] != null ? String(row[qaKey]) : '').trim();
         var isDap = qaVal === '답' || qaVal === 'A' || String(qaVal).toUpperCase().indexOf('답') !== -1;
-        list.push({ type: isDap ? '답' : '문', text: detail, date: row[dateKey] != null ? row[dateKey] : row['상담일자'], time: row[timeKey] != null ? row[timeKey] : row['상담시간'] });
+        var dateVal = row[dateKey] != null ? row[dateKey] : row['상담일자'];
+
+        var dayNum = 0;
+        if (typeof dateVal === 'number') {
+          if (dateVal >= 1 && dateVal < 3000000 && typeof XLSX !== 'undefined') {
+            try {
+              var d = XLSX.SSF.parse_date_code(dateVal);
+              if (d && d.y >= 1900) dayNum = d.y * 10000 + d.m * 100 + d.d;
+            } catch (e) { }
+          } else if (dateVal > 20000000) {
+            dayNum = dateVal;
+          }
+        } else if (typeof dateVal === 'string') {
+          var ds = dateVal.replace(/\D/g, '');
+          if (ds.length === 8) dayNum = parseInt(ds, 10);
+          else if (ds.length === 6) {
+            var yy = parseInt(ds.slice(0, 2), 10);
+            dayNum = (yy >= 50 ? 19000000 : 20000000) + parseInt(ds, 10);
+          }
+        }
+
+        if (dayNum === todayYYYYMMDD) return; // 오늘 상담내역을 과거 상담에서 제외
+
+        list.push({ type: isDap ? '답' : '문', text: detail, date: dateVal, time: row[timeKey] != null ? row[timeKey] : row['상담시간'] });
       });
       list.sort(function (a, b) {
         var da = a.date != null ? a.date : 0, db = b.date != null ? b.date : 0;
@@ -1151,7 +2097,7 @@
           updateProductTypeOptions();
           updateTargetProductOptions();
         })
-        .catch(function () {});
+        .catch(function () { });
     }
     tryAutoLoadProducts();
 
@@ -1545,7 +2491,7 @@
     function filterByKey(rows, nameKey, juminKey) {
       return (rows || []).filter(function (r) {
         return (r['계약자명'] != null ? String(r['계약자명']) : '').trim() === nameKey &&
-               normalizeJumin(r['주민번호'] != null ? r['주민번호'] : '') === juminKey;
+          normalizeJumin(r['주민번호'] != null ? r['주민번호'] : '') === juminKey;
       });
     }
 
@@ -1599,7 +2545,7 @@
         try {
           var d = XLSX.SSF.parse_date_code(val);
           if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
-        } catch (err) {}
+        } catch (err) { }
       }
       return s;
     }
@@ -1684,8 +2630,16 @@
     }
 
     window._selectedInfoRowIndex = null;
+    window._selectedInsuranceRowIndex = null;
     window._onInfoRowClick = function (rowIndex) {
       window._selectedInfoRowIndex = rowIndex;
+      window._selectedInsuranceRowIndex = null;
+      var infoBody = document.querySelector('#info-table tbody');
+      if (infoBody) {
+        infoBody.querySelectorAll('tr').forEach(function (tr) { tr.classList.remove('row-selected'); });
+        var selTr = infoBody.querySelector('tr[data-row-index="' + rowIndex + '"]');
+        if (selTr) selTr.classList.add('row-selected');
+      }
       var info = window._infoTableData;
       if (!info || !info.rows || !info.rows[rowIndex]) return;
       var headers = info.headers;
@@ -1764,6 +2718,13 @@
 
     var CONTRACT_FIELD_KEYS = ['상품종류', '상품명', '증권번호', '납입만기', '주요담보', '월보험료', '납입방법', '납입보험료', '총보험료', '해지환급금', '대출금', '참고사항'];
     window._onInsuranceRowClick = function (rowIndex) {
+      window._selectedInsuranceRowIndex = rowIndex;
+      var insBody = document.querySelector('#insurance-table tbody');
+      if (insBody) {
+        insBody.querySelectorAll('tr').forEach(function (tr) { tr.classList.remove('row-selected'); });
+        var selTr = insBody.querySelector('tr[data-row-index="' + rowIndex + '"]');
+        if (selTr) selTr.classList.add('row-selected');
+      }
       var rows = window._currentInsuranceRows;
       if (!rows || !rows[rowIndex]) return;
       var row = rows[rowIndex];
@@ -1889,10 +2850,21 @@
               .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
               .then(function (result) {
                 if (result.ok && result.data && result.data.appended > 0) {
-                  if (window._accidentData && window._accidentData.rows) window._accidentData.rows.push(row);
-                  if (window._currentAccidentRows) window._currentAccidentRows.push(row);
-                  if (window._currentAccidentHeaders && window._currentAccidentRows) {
-                    renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+                  if (typeof tryAutoLoadAccident === 'function') {
+                    tryAutoLoadAccident().then(function () {
+                      var accident = window._accidentData;
+                      if (accident && accident.rows) {
+                        var filtered = accident.rows.filter(function (r) {
+                          var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
+                          var j = normalizeJumin(r['주민번호'] != null ? r['주민번호'] : '');
+                          return n === contractName && j === juminVal;
+                        });
+                        if (window._currentAccidentHeaders) {
+                          window._currentAccidentRows = filtered;
+                          renderAccidentTable(window._currentAccidentHeaders, filtered);
+                        }
+                      }
+                    });
                   }
                 } else {
                   alert('저장 실패: ' + (result.data && result.data.error ? result.data.error : '서버 오류'));
@@ -1903,18 +2875,65 @@
               });
           } else if (mode === '수정' && window._accidentEditRowIndex != null && window._currentAccidentRows) {
             var tr = document.querySelector('#accident-table tbody tr[data-row-index="' + window._accidentEditRowIndex + '"]');
+            var updatedData = {};
             if (tr) {
               tr.querySelectorAll('input.accident-inline-input').forEach(function (inp) {
                 var key = inp.getAttribute('data-key');
-                if (key && window._currentAccidentRows[window._accidentEditRowIndex]) {
-                  window._currentAccidentRows[window._accidentEditRowIndex][key] = inp.value;
-                }
+                if (key) updatedData[key] = (inp.value || '').trim();
               });
             }
-            window._accidentEditRowIndex = null;
-            if (window._currentAccidentHeaders && window._currentAccidentRows) {
-              renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+            var selRow = window._currentAccidentRows[window._accidentEditRowIndex];
+            var fileRowIndex = selRow && selRow._fileRowIndex != null ? selRow._fileRowIndex : null;
+
+            if (fileRowIndex == null) {
+              if (selRow) {
+                Object.keys(updatedData).forEach(function (k) { selRow[k] = updatedData[k]; });
+              }
+              window._accidentEditRowIndex = null;
+              if (window._currentAccidentHeaders && window._currentAccidentRows) {
+                renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+              }
+              return;
             }
+
+            var sagoDate = updatedData['사고일자'] || '';
+            var sagoParts = (sagoDate || '').match(/^(\d{2})\/(\d{1,2})\/(\d{1,2})$/);
+            var yyyymmdd = null;
+            if (sagoParts) {
+              var yy = parseInt(sagoParts[1], 10);
+              var mm = parseInt(sagoParts[2], 10);
+              var dd = parseInt(sagoParts[3], 10);
+              if (yy >= 0 && yy <= 99 && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+                yyyymmdd = (2000 + yy) * 10000 + mm * 100 + dd;
+              }
+            }
+            var rowPayload = Object.assign({}, updatedData);
+            if (yyyymmdd != null) rowPayload['기록일자'] = yyyymmdd;
+
+            fetch('/api/accident', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'updateRow', rowIndex: fileRowIndex, row: rowPayload })
+            })
+              .then(function (res) { return res.json(); })
+              .then(function (data) {
+                if (data && data.ok) {
+                  if (selRow) {
+                    Object.keys(updatedData).forEach(function (k) { selRow[k] = updatedData[k]; });
+                    if (yyyymmdd != null) selRow['기록일자'] = yyyymmdd;
+                  }
+                  window._accidentEditRowIndex = null;
+                  if (window._currentAccidentHeaders && window._currentAccidentRows) {
+                    renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+                  }
+                } else {
+                  alert('수정 실패: ' + (data && data.error ? data.error : '서버 오류'));
+                }
+              })
+              .catch(function () {
+                alert('수정 실패: 서버에 연결할 수 없습니다.');
+              });
+
           } else if (mode === '삭제') {
             if (window._accidentDeleteSelectedRowIndex != null && window._currentAccidentRows) {
               var selRow = window._currentAccidentRows[window._accidentDeleteSelectedRowIndex];
@@ -2175,7 +3194,10 @@
       if (helpModal) helpModal.addEventListener('click', function (e) { if (e.target === helpModal) closeHelpModal(); });
       var btnWorkEnd = document.getElementById('btn-work-end');
       if (btnWorkEnd) btnWorkEnd.addEventListener('click', function () {
-        if (window.confirm('작업을 종료하시겠습니까?')) window.close();
+        if (window.confirm('작업을 종료하시겠습니까?')) {
+          window.open('', '_self', '');
+          window.close();
+        }
       });
     })();
 
@@ -2188,7 +3210,11 @@
       var currentNameKey = '';
       var currentJuminKey = '';
 
-      function counselTodayStorageKey() { return 'kb023_counsel_today_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || ''); }
+      function counselTodayStorageKey() {
+        var d = new Date();
+        var yMD = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+        return 'kb023_counsel_' + yMD + '_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || '');
+      }
       function loadQaFromStorage() {
         try {
           var raw = localStorage.getItem(counselTodayStorageKey());
@@ -2196,7 +3222,7 @@
         } catch (e) { qaRows = []; }
       }
       function saveQaToStorage() {
-        try { localStorage.setItem(counselTodayStorageKey(), JSON.stringify(qaRows)); } catch (e) {}
+        try { localStorage.setItem(counselTodayStorageKey(), JSON.stringify(qaRows)); } catch (e) { }
       }
 
       function buildChatMessageList() {
@@ -2333,6 +3359,61 @@
       if (chatMessages) chatMessages.addEventListener('click', onChatMessageClick);
       updateFromSelection();
     })();
+
+    // 백업 및 복원 기능
+    (function () {
+      var btnBackup = document.getElementById('btn-backup');
+      var btnRestore = document.getElementById('btn-restore');
+      var inputPwd = document.getElementById('backup-pwd');
+
+      function doBackupRestore(actionName) {
+        var pwd = inputPwd ? inputPwd.value : '';
+        if (!pwd) {
+          alert('패스워드를 입력하세요.');
+          if (inputPwd) inputPwd.focus();
+          return;
+        }
+
+        if (actionName === 'backup' && pwd !== 'xlsx2json') {
+          alert('백업 패스워드가 일치하지 않습니다.');
+          return;
+        }
+
+        if (actionName === 'restore' && pwd !== 'json2xlsx') {
+          alert('복원 패스워드가 일치하지 않습니다.');
+          return;
+        }
+
+        var confirmMsg = actionName === 'backup' ?
+          '.source 폴더의 엑셀 데이터를 JSON으로 백업(xlsx -> json)하시겠습니까?\\n(기존 백업은 덮어씁니다.)' :
+          '.source 폴더의 JSON 백업본을 엑셀로 복원(json -> xlsx)하시겠습니까?\\n(현재 엑셀 데이터가 삭제되고 복원본으로 덮어씌워집니다.)';
+
+        if (!window.confirm(confirmMsg)) return;
+
+        fetch('/api/backup_restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: actionName, password: pwd })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res.ok) {
+              alert(res.message);
+              if (inputPwd) inputPwd.value = '';
+              if (actionName === 'restore') location.reload();
+            } else {
+              alert('오류: ' + (res.error || '알 수 없는 서버 오류'));
+            }
+          })
+          .catch(function (e) {
+            alert('저장 실패: 서버에 연결할 수 없습니다. Python 서버가 실행 중인지 확인하세요.');
+          });
+      }
+
+      if (btnBackup) btnBackup.addEventListener('click', function () { doBackupRestore('backup'); });
+      if (btnRestore) btnRestore.addEventListener('click', function () { doBackupRestore('restore'); });
+    })();
   </script>
 </body>
+
 </html>
