@@ -41,15 +41,18 @@
       border-radius: 4px;
     }
     .header .header-btns button:hover { background: #e8eef4; color: #1e3a5f; }
+    .header .header-checkbox { margin-left: 0.75rem; font-weight: normal; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem; }
     .body {
       flex: 1;
       display: flex;
       gap: 0;
       min-height: 0;
+      align-items: stretch;
     }
     .container {
       flex: 1;
       min-width: 0;
+      min-height: 0;
       padding: 1rem;
       border: 1px solid #ddd;
       display: flex;
@@ -58,8 +61,10 @@
     }
     .container h3 { margin: 0 0 0.5rem 0; font-size: 1rem; color: #333; }
     .container input[type="file"] { margin-bottom: 0.5rem; font-size: 0.9rem; }
-    .table-wrap { flex: 1; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; }
-    #left-container .table-wrap:first-of-type { flex: 0 0 auto; }
+    .table-wrap { flex: 1; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; min-height: 0; width: 100%; box-sizing: border-box; }
+    #left-container .table-wrap:first-of-type { flex: 3 1 0; }
+    #left-container .table-wrap:nth-of-type(2) { flex: 0 0 auto; height: fit-content; align-self: flex-start; }
+    #left-container .table-wrap:nth-of-type(3) { flex: 1 1 0; }
     table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
     th, td { border: 1px solid #ddd; padding: 0.3rem 0.6rem; text-align: left; }
     th { background: #2c5282; color: #fff; white-space: nowrap; position: sticky; top: 0; }
@@ -76,55 +81,86 @@
     .detail-form .radio-inline input { margin-right: 0.25rem; vertical-align: middle; }
     .detail-form .label-cell { background: #e8eef4; font-weight: 500; white-space: nowrap; width: 1%; }
     .detail-form .value-cell { background: #fff; min-width: 4em; }
-    .detail-form .section-label { background: #dde4ec; font-weight: bold; text-align: center; }
+    .detail-form .section-label { background: #dde4ec; font-weight: bold; text-align: center; white-space: nowrap; }
     .detail-form .action-header { background: #e8eef4; text-align: center; }
     .detail-form .action-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; cursor: pointer; border: 1px solid #2c5282; background: #fff; border-radius: 3px; }
     .detail-form .action-btn:hover { background: #e8eef4; }
     .detail-form .action-sub { font-size: 0.75rem; text-align: center; color: #555; }
     .detail-form .detail-amount { text-align: right; }
-    #db-agree-toggle { min-width: 4.5em; }
     .detail-form select.detail-input { cursor: pointer; }
     .footer {
       background: #2d3748;
       color: #e2e8f0;
       padding: 0.6rem 1.5rem;
       font-size: 0.85rem;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    .footer .footer-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: #e2e8f0;
+      color: #2d3748;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+    .footer .footer-btn:hover { background: #fff; color: #2d3748; }
     .placeholder { color: #718096; padding: 1rem; text-align: center; }
-    /* information/insurance/prebargaining: 박스 너비에 맞춤, 고정 레이아웃, 공간 부족 시 말줄임 */
-    #info-table { width: 100%; max-width: 100%; min-width: 0; display: block; }
-    #info-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.75rem; min-width: 0; }
+    /* information/insurance/accident: 박스 너비와 동일하게 */
+    #info-table, #insurance-table, #accident-table { width: 100%; max-width: 100%; min-width: 0; display: block; box-sizing: border-box; margin-left: 0; margin-right: 0; }
+    #info-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.7rem; min-width: 0; box-sizing: border-box; }
     #info-table table td,
-    #info-table table th { padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    #info-table table th { padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: bold; }
     #info-table table tbody tr { cursor: pointer; }
     #info-table table tbody tr:hover { background: #e6f0fa; }
-    /* 사전협상 대화창 (prebargaining 박스 내부) */
-    #right-container .prebargaining-box { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-    #right-container .prebargaining-box .prebargaining-chat-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+    /* counsel: 과거상담/오늘상담 높이는 JS로 information·DB고객 세부내용과 동기화 */
+    #right-container .counsel-section { font-size: 0.7rem; }
+    #right-container .counsel-section .chat-msg { max-width: var(--counsel-input-width, 98%); width: max-content; font-size: 0.7rem; }
+    .counsel-empty-text { color: #9ca3af; opacity: 0.85; padding: 0.5rem 0; }
+    #right-container .counsel-chat-box .counsel-chat-input { font-size: 0.75rem; }
+    #right-container .counsel-chat-box { display: flex; flex-direction: column; min-height: 0; }
+    #right-container .counsel-chat-box .chat-messages { flex: 1; min-height: 0; overflow-y: auto; }
     .chat-messages { flex: 1; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; background: #f8fafc; min-height: 0; }
-    .chat-msg-row { display: flex; align-items: flex-end; gap: 0.35rem; max-width: 100%; }
+    .chat-msg-row { display: flex; align-items: flex-end; gap: 0.2rem; max-width: 100%; }
     .chat-msg-row.msg-row-mun { align-self: flex-start; }
     .chat-msg-row.msg-row-dap { align-self: flex-end; flex-direction: row-reverse; }
-    .chat-msg { max-width: 80%; padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; cursor: pointer; }
-    .chat-msg.msg-mun { background: #e8eef4; color: #1e3a5f; border-bottom-left-radius: 4px; }
-    .chat-msg.msg-dap { background: #2c5282; color: #fff; border-bottom-right-radius: 4px; }
-    .chat-msg-time { font-size: 0.7rem; color: #718096; white-space: nowrap; flex-shrink: 0; }
+    .chat-msg { max-width: 98%; padding: 0.3rem 0.3rem; border-radius: 12px; font-size: 0.7rem; line-height: 1.4; word-break: break-word; cursor: pointer; }
+    .chat-msg.msg-mun { background: #e8eef4; color: #1e3a5f; border-bottom-left-radius: 4px; text-align: left; }
+    .chat-msg.msg-dap { background: rgba(44, 82, 130, 0.5); color: #fff; border-bottom-right-radius: 4px; text-align: right; }
+    .chat-msg-time { font-size: 0.5rem; color: #718096; white-space: nowrap; flex-shrink: 0; }
     .chat-msg-date { font-size: 0.7rem; color: #718096; margin-bottom: 0.25rem; }
     .chat-input-row { display: flex; gap: 0.35rem; padding: 0.5rem 0.75rem; border-top: 1px solid #e0e0e0; background: #fff; align-items: center; }
     .chat-current-name { flex-shrink: 0; font-size: 0.85rem; color: #2c5282; font-weight: 600; max-width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat-input { flex: 1; min-width: 0; padding: 0.4rem 0.6rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 6px; }
-    .chat-send-type { padding: 0.35rem 0.5rem; font-size: 0.8rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+    .chat-send-type { padding: 0.35rem 0.5rem; font-size: 0.75rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
     .chat-send-btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; cursor: pointer; border: none; background: #2c5282; color: #fff; border-radius: 6px; }
     .chat-send-btn:hover { background: #1e3a5f; }
     #right-container { display: flex; flex-direction: column; min-height: 0; }
-    #right-container .table-wrap-half { min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; }
-    #right-container .table-wrap-half:first-of-type { flex: 1; }
-    #right-container .table-wrap-half:last-of-type { flex: 2; }
-    #insurance-table { width: 100%; max-width: 100%; min-width: 0; display: block; }
-    #insurance-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.75rem; min-width: 0; }
-    #insurance-table table td,
-    #insurance-table table th { padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .table-rows-4 { min-height: 9rem; }
+    #right-container .table-wrap-half { min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; width: 100%; box-sizing: border-box; }
+    #right-container .table-wrap.table-rows-4 { flex: 1 1 0; min-height: 0; overflow: auto; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; width: 100%; box-sizing: border-box; }
+    #insurance-table, #accident-table, #counsel-table { width: 100%; max-width: 100%; min-width: 0; display: block; box-sizing: border-box; margin-left: 0; margin-right: 0; }
+    #insurance-table table, #accident-table table, #counsel-table table { table-layout: fixed; width: 100%; max-width: 100%; font-size: 0.7rem; min-width: 0; box-sizing: border-box; border-collapse: collapse; }
+    #insurance-table table td, #insurance-table table th, #accident-table table td, #accident-table table th, #counsel-table table td, #counsel-table table th { border: 1px solid #333; padding: 0.2rem 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    #insurance-table table thead th, #accident-table table thead th, #counsel-table table thead th { font-weight: bold; border-bottom: 2px solid #333; }
+    #insurance-table table tbody tr, #accident-table table tbody tr { cursor: pointer; }
+    #insurance-table table tbody tr:hover, #accident-table table tbody tr:hover { background: #e6f0fa; }
+    #insurance-table table td.detail-amount, #insurance-table table th.detail-amount { text-align: right; }
+    #insurance-table table { border: 1px solid #333; }
+    #insurance-table table th, #insurance-table table td { border: 1px dotted #999; }
+    #insurance-table table thead th { text-align: center; font-weight: bold; }
+    #insurance-table table .ins-th-rowspan { border-right: 1px dotted #999; }
+    #insurance-table table thead th { border-bottom: 1px dotted #999; }
+    #insurance-table table thead tr:nth-child(2) th { border-left: 1px dotted #999; border-right: 1px dotted #999; border-bottom: 1px dotted #999; }
+    #insurance-table table tbody tr:first-child td { border-top: 1px dotted #999; }
+    #insurance-table table tbody td { border: 1px dotted #999; }
+    #insurance-table table td.ins-cell-double { white-space: normal; vertical-align: top; }
+    #insurance-table table td.ins-cell-double .ins-cell-line { display: block; }
+    #insurance-table table td.ins-cell-double .ins-cell-line:first-child { border-bottom: 1px dotted #999; padding-bottom: 0.15rem; margin-bottom: 0.15rem; }
+    #accident-table table tbody tr.accident-row-delete-selected { background: #feb2b2; }
+    #accident-table .accident-inline-input { font-size: inherit; padding: 0.2rem 0.3rem; border: 1px solid #ccc; border-radius: 3px; }
     /* 배정자료 모달 */
     #assign-modal {
       display: none;
@@ -136,8 +172,8 @@
     #assign-modal.open { display: block; }
     #assign-modal .assign-box {
       position: fixed;
-      width: 100rem;
-      max-width: 95%;
+      width: 50rem;
+      max-width: 47.5%;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.2);
@@ -159,17 +195,6 @@
       cursor: move;
       user-select: none;
     }
-    #assign-modal .assign-print-btn {
-      flex-shrink: 0;
-      padding: 0.35rem 0.75rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-      border: 1px solid #2c5282;
-      background: #fff;
-      color: #2c5282;
-      border-radius: 4px;
-    }
-    #assign-modal .assign-print-btn:hover { background: #e6f0fa; }
     #assign-modal .assign-box .assign-table-wrap { flex: 1; overflow: auto; padding: 0 1rem 1rem; }
     #assign-modal .assign-box table { font-size: 0.75rem; table-layout: fixed; width: 100%; }
     #assign-modal .assign-box table td,
@@ -180,6 +205,10 @@
     #assign-modal .assign-box table td.col-center { text-align: center; }
     #assign-modal .assign-box table th.col-left,
     #assign-modal .assign-box table td.col-left { text-align: left; }
+    #assign-modal .assign-box table thead th { background: #e8e8e8; color: #333; }
+    #assign-modal .assign-box table td.assign-inline-cell { white-space: nowrap; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-left { flex-shrink: 0; }
+    #assign-modal .assign-box table td.assign-inline-cell .assign-inline-right { text-align: right; flex-shrink: 0; white-space: nowrap; }
     #assign-modal .assign-box tbody tr { cursor: pointer; }
     #assign-modal .assign-box tbody tr:hover { background: #e6f0fa; }
 
@@ -212,43 +241,65 @@
     #help-modal .help-box .help-body p { margin: 0.5rem 0; }
     #help-modal .help-box .help-body .caution { color: #c53030; font-weight: 500; }
 
-    /* 인쇄: A4, 순서 DB고객 세부내용 → information → insurance → prebargaining */
+    /* 인쇄 영역: 화면에서는 숨김, 인쇄 시에만 표시 */
+    #print-area { display: none; }
     @media print {
-      @page { size: A4; margin: 2cm 1cm 1.5cm 1.5cm; }
-      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      .header .header-left, .header .header-btns { display: none; }
-      #assign-modal, #help-modal { display: none !important; }
-      .body { flex-direction: column !important; }
-      #left-container { order: 1; width: 100% !important; max-width: none !important; break-after: auto; }
-      #right-container { order: 2; width: 100% !important; max-width: none !important; }
-      .container { break-inside: avoid; }
-      .table-wrap, .table-wrap-half { overflow: visible !important; max-height: none !important; }
-      #insurance-table table td,
-      #insurance-table table th { overflow: visible !important; text-overflow: clip; white-space: normal !important; word-break: break-word; }
-    }
-    /* 배정자료만 인쇄: A4 가로, 여백 최소화, 컬럼 줄바꿈 */
-    @media print {
-      body.print-assign * { visibility: hidden; }
-      body.print-assign #assign-modal,
-      body.print-assign #assign-modal * { visibility: visible; }
-      body.print-assign #assign-modal { position: fixed !important; inset: 0 !important; background: #fff !important; display: block !important; z-index: 99999; }
-      body.print-assign #assign-modal .assign-box { position: static !important; width: 100% !important; max-width: none !important; max-height: none !important; box-shadow: none !important; border-radius: 0 !important; }
-      body.print-assign #assign-modal .assign-print-btn { display: none !important; }
-      body.print-assign #assign-modal .assign-table-wrap { overflow: visible !important; }
-      body.print-assign #assign-modal .assign-box table td,
-      body.print-assign #assign-modal .assign-box table th { overflow: visible !important; text-overflow: clip !important; white-space: normal !important; word-break: break-word !important; }
-      body.print-assign #assign-modal .assign-box table td.col-ellipsis,
-      body.print-assign #assign-modal .assign-box table th.col-ellipsis { max-width: none !important; }
+      @page { size: A4; margin: 2cm 1.5cm 1.5cm 1.5cm; }
+      body.print-output .header,
+      body.print-output .body,
+      body.print-output #help-modal,
+      body.print-output #assign-modal { display: none !important; }
+      body.print-output #print-area { display: block !important; }
+      body.print-output .footer { display: none !important; }
+      #print-area .print-main-title { font-size: 2em; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
+      #print-area .print-info-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.9rem; }
+      #print-area .print-page-info::after { content: "페이지 " counter(page) " / 총페이지 " counter(pages); }
+      #print-area table { border-collapse: collapse; width: 100%; font-size: 0.75rem; margin-bottom: 1rem; border: 1px solid #000; }
+      #print-area table th, #print-area table td { border: 0.5px solid #999; padding: 0.25rem 0.5rem; text-align: left; }
+      #print-area table th:first-child, #print-area table td:first-child { border-left: 1px solid #000; }
+      #print-area table th:last-child, #print-area table td:last-child { border-right: 1px solid #000; }
+      #print-area table th { background: #e8e8e8; font-weight: normal; color: #000; }
+      #print-area table thead th { border-bottom: 1px solid #000 !important; }
+      #print-area table tbody tr:first-child td { border-top: 1px solid #000 !important; }
+      #print-area table tbody td { color: #555; }
+      #print-area .print-section-title { font-weight: normal; margin: 0.75rem 0 0.25rem; font-size: 0.9rem; color: #000; }
+      #print-area .print-section-title:first-child { margin-top: 0; }
+      #print-area .detail-form { border: 1px solid #000; font-size: 0.75rem; }
+      #print-area .detail-form td, #print-area .detail-form th { border: 0.5px solid #999; padding: 0.2rem 0.5rem; vertical-align: middle; }
+      #print-area .detail-form .label-cell { background: #e8eef4; font-weight: 500; }
+      #print-area .detail-form .value-cell { background: #fff; }
+      #print-area .detail-form .section-label { background: #dde4ec; font-weight: normal; text-align: center; color: #000; }
+      #print-area .detail-form .main-title { background: #f0f4f8; font-weight: normal; color: #000; }
+      #print-area .detail-form .print-value { display: inline-block; min-width: 1em; }
+      #print-area table.print-insurance-table { border: 1px solid #000; }
+      #print-area table.print-insurance-table th, #print-area table.print-insurance-table td { border: 0.5px solid #999; }
+      #print-area table.print-insurance-table thead tr:nth-child(2) th { border-left: 0.5px solid #999; border-right: 0.5px solid #999; border-bottom: 1px solid #000; }
+      #print-area table.print-insurance-table th { text-align: center; color: #000; font-weight: normal; }
+      #print-area table.print-insurance-table td:nth-child(1), #print-area table.print-insurance-table td:nth-child(2) { text-align: left; }
+      #print-area table.print-insurance-table td:nth-child(n+4) { text-align: right; }
+      #print-area table.print-insurance-table td .print-ins-cell-line { display: block; }
+      #print-area table.print-insurance-table td .print-ins-cell-line:first-child { border-bottom: 0.5px solid #999; padding-bottom: 0.1rem; margin-bottom: 0.1rem; }
+      #print-area table.print-accident-table { border: 1px solid #000; }
+      #print-area table.print-accident-table th, #print-area table.print-accident-table td { border: 0.5px solid #999; }
+      #print-area table.print-accident-table th { color: #000; font-weight: normal; }
+      #print-area table.print-accident-table td:nth-child(2) { text-align: left; }
+      #print-area table.print-counsel-table { border: 1px solid #000; }
+      #print-area table.print-counsel-table th, #print-area table.print-counsel-table td { border: 0.5px solid #999; }
+      #print-area table.print-counsel-table th { color: #000; font-weight: normal; }
+      #print-area table.print-counsel-table tr.print-row-문 td:last-child { text-align: left; }
+      #print-area table.print-counsel-table tr.print-row-답 td:last-child { text-align: right; }
     }
   </style>
 </head>
 <body>
+  <div id="print-area" aria-hidden="true"></div>
   <header class="header">
     <div class="header-left">
       <button type="button" id="btn-help">도움말</button>
     </div>
     <span class="header-title">KB 고객관리</span>
     <div class="header-btns">
+      <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
       <button type="button" id="btn-assign-data">배정자료</button>
     </div>
   </header>
@@ -257,34 +308,73 @@
       <h3>도움말</h3>
       <div class="help-body">
         <div class="help-col help-col-left">
-          <h4>1. 사용설명서</h4>
-          <p><strong>데이터 로드</strong></p>
+          <h4>1. 필요한 파일 및 로드</h4>
+          <p>다음 Excel 파일을 앱과 같은 폴더에 두면 페이지 로드 시 자동으로 읽습니다.</p>
           <ul>
-            <li>이 앱은 kb023_information.xlsx, kb023_insurance.xlsx, kb023_prebargaining.xlsx, kb023_products.xlsx 파일을 같은 폴더에 두면 자동으로 로드합니다.</li>
-            <li>information 테이블은 페이지 로드 시 자동 표시됩니다. insurance/prebargaining은 information에서 행을 선택하면 해당 계약자 기준으로 표시됩니다.</li>
+            <li><strong>kb023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송, DB종류, 연락처 등이 있으면 화면·필터에 사용됩니다.</li>
+            <li><strong>kb023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로 표시됩니다. 월보험료·납입보험료·총보험료·해지환급금·대출금은 금액(천 단위 콤마)으로 표시됩니다.</li>
+            <li><strong>kb023_accident.xlsx</strong> — 사고/사전교섭 데이터. 계약자명·주민번호로 필터됩니다. accident 모드(입력/수정/삭제)에서 완료 시 /api/accident로 저장할 수 있습니다.</li>
+            <li><strong>kb023_counse.xlsx</strong> — 과거 상담 기록. 계약자명·주민번호로 필터되어 counsel 영역에 문/답 형식으로 표시됩니다.</li>
+            <li><strong>kb023_products.xlsx</strong> — 상품 목록. 보험사·상품종류·상품명 등이 있으면 DB고객 세부내용의 상품종류·상품명 드롭다운에 사용됩니다.</li>
           </ul>
-          <p><strong>DB고객 세부내용</strong></p>
+          <p>브라우저 개발자 도구(F12) → 콘솔에서 각 파일 로드 시 컬럼 목록과 "컬럼 없음(매칭안됨)" 경고를 확인할 수 있습니다. 시트 첫 행(헤더)과 코드에서 기대하는 컬럼명이 맞는지 확인하세요.</p>
+
+          <h4>2. information 테이블</h4>
           <ul>
-            <li>드롭다운(조회/입력/수정/삭제/출력)과 완료 버튼은 information에서 행을 선택한 뒤 사용할 수 있습니다. 수정·삭제·출력은 행 선택 후에만 선택 가능합니다.</li>
-            <li>조회: 선택한 행의 세부내용·보험·사전교섭 데이터를 조회만 합니다.</li>
-            <li>입력: 세부내용 폼을 비운 뒤 새로 입력합니다. 완료 버튼으로 저장(동작은 연동된 백엔드에 따라 다름).</li>
-            <li>수정/삭제: 선택한 행 데이터를 수정하거나 삭제합니다. 완료 버튼으로 반영합니다.</li>
-            <li>출력: 선택한 행 기준으로 DB고객 세부내용·information·insurance·prebargaining을 A4로 인쇄합니다. 인쇄 후 모드는 자동으로 조회로 돌아갑니다.</li>
+            <li>페이지를 열면 information 시트가 왼쪽 상단 테이블에 표시됩니다.</li>
+            <li><strong>행을 클릭</strong>하면 해당 계약자의 DB고객 세부내용, insurance, accident, counsel이 오른쪽/아래 영역에 표시됩니다. 동의/부동의는 information의 "문자전송" 컬럼 값으로 채워집니다.</li>
           </ul>
-          <p><strong>배정자료</strong></p>
+
+          <h4>3. DB고객 세부내용</h4>
           <ul>
-            <li>헤더의 배정자료 버튼을 누르면 information/insurance 데이터를 배정일자·계약자 순으로 모달에 표시합니다.</li>
-            <li>모달은 마우스 드래그 또는 방향키로 이동할 수 있으며, 다음에 열 때 마지막 위치에서 표시됩니다.</li>
-            <li>행을 클릭하면 모달이 닫히고 메인 화면에서 해당 information 행이 선택된 상태로 표시됩니다.</li>
+            <li>information에서 행을 선택한 뒤에만 드롭다운(조회/입력/수정/삭제/출력)과 완료 버튼이 활성화됩니다. 수정·삭제·출력 옵션은 행 선택 후에만 선택 가능합니다.</li>
+            <li><strong>조회</strong>: 선택한 행의 세부내용·보험 데이터를 합쳐서 폼에 채웁니다. 동의/부동의는 information의 문자전송 값으로 설정됩니다.</li>
+            <li><strong>입력</strong>: 폼을 비운 뒤 새로 입력하고 완료 시 저장합니다(백엔드 연동 시).</li>
+            <li><strong>수정/삭제</strong>: 선택한 행 데이터를 수정하거나 삭제한 뒤 완료로 반영합니다.</li>
+            <li><strong>출력</strong>: 출력을 선택한 뒤 완료를 누르면 선택한 행 기준으로 DB고객 세부내용·kb023_insurance·kb023_accident·kb023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및 바닥글</strong> 옵션을 해제하세요.</li>
+            <li>배정일자·종료일자·납입만기 입력란에 숫자 6자리(yymmdd) 또는 8자리(yyyymmdd)를 입력한 뒤 포커스를 벗어나면 "yy/mm/dd" 형식으로 자동 변환됩니다.</li>
+          </ul>
+
+          <h4>4. insurance 테이블</h4>
+          <ul>
+            <li>선택한 계약자의 보험 데이터가 표시됩니다. 계약자명·주민번호 컬럼은 테이블에서 숨겨집니다.</li>
+            <li><strong>행을 클릭</strong>하면 DB고객 세부내용의 "계약상세" 영역(상품종류·상품명·증권번호·납입만기·보험료 등)만 해당 보험 행 데이터로 갱신됩니다.</li>
+            <li>월보험료·납입보험료·총보험료·해지환급금·대출금은 금액으로 포맷(천 단위 콤마, 우측 정렬)됩니다. 날짜는 yy/mm/dd로 표시됩니다.</li>
+          </ul>
+
+          <h4>5. accident 테이블</h4>
+          <ul>
+            <li>계약자를 선택한 뒤 드롭다운(입력/수정/삭제)과 완료 버튼이 활성화됩니다.</li>
+            <li><strong>입력</strong>: 마지막 행에 사고일자·사고내용 등을 입력합니다. 사고일자란에 6자리 또는 8자리 숫자만 입력 후 포커스를 벗기면 "yy/mm/dd"로 변환됩니다. 완료를 누르면 /api/accident로 전송되어 xlsx에 저장되고 테이블이 다시 그려집니다.</li>
+            <li><strong>수정</strong>: 수정할 행을 클릭하면 해당 행이 편집 가능한 입력란으로 바뀝니다. 사고일자·사고내용 등을 수정한 뒤 완료를 누르면 화면 데이터가 갱신되고 테이블이 재출력됩니다.</li>
+            <li><strong>삭제</strong>: 삭제할 행을 클릭하면 행이 강조 표시됩니다. 완료를 누르면 "해당 행을 삭제합니다" 메시지가 뜨고, 확인 후 테이블이 다시 그려집니다.</li>
+          </ul>
+
+          <h4>6. counsel(상담)</h4>
+          <ul>
+            <li><strong>과거 상담</strong>: 선택한 계약자의 counsel 데이터가 문/답 말풍선으로 표시됩니다. 말풍선 옆에 "yy/mm/dd (요일) HH:MM" 형식으로 표시됩니다.</li>
+            <li><strong>오늘 상담</strong>: 문(가입자)/답(상담자) 드롭다운을 선택한 뒤 메시지를 입력하고 전송합니다. 문으로 전송하면 드롭다운이 답으로, 답으로 전송하면 문으로 자동 변경됩니다. 전송 시 /api/counsel로 저장됩니다.</li>
+            <li>말풍선 너비는 "오늘 상담 메시지 입력" 입력 필드 너비와 맞춰지며, 배경색은 50% 투명으로 표시됩니다.</li>
+          </ul>
+
+          <h4>7. 배정자료 모달</h4>
+          <ul>
+            <li>헤더의 "배정자료" 버튼을 누르면 information·insurance 데이터를 배정일자·계약자 순으로 모달에 표시합니다. seq/배정일자/문자전송/DB종류/계약자명/주민번호/연락처/증권번호/납입만기가 한 줄로 표시됩니다.</li>
+            <li>모달은 헤더를 드래그하거나 방향키로 이동할 수 있습니다. <strong>원위치</strong> 버튼을 누르면 화면 중앙으로 돌아갑니다.</li>
+            <li>모달 영역 밖(배경)을 클릭하면 모달이 닫힙니다. 테이블 행을 클릭하면 모달이 닫히고 해당 information 행이 선택된 상태로 메인 화면에 표시됩니다.</li>
+          </ul>
+
+          <h4>8. 푸터</h4>
+          <ul>
+            <li><strong>작업종료</strong> 버튼을 누르면 "작업을 종료하시겠습니까?" 확인 후 창을 닫습니다. (일반 탭에서는 브라우저 정책에 따라 닫히지 않을 수 있습니다.)</li>
           </ul>
         </div>
         <div class="help-col help-col-right">
-          <h4>2. 주의사항</h4>
+          <h4>9. 주의사항</h4>
           <ul>
-            <li class="caution">Excel 파일은 반드시 앱과 같은 경로(또는 지정된 경로)에 두어야 하며, 시트 첫 행은 헤더로 사용됩니다.</li>
-            <li class="caution">주민등록번호·연락처 등 개인정보가 화면에 표시되므로, 사용 환경에 맞게 보안(접근 제한, 화면 보호)을 유지하세요.</li>
-            <li class="caution">입력/수정/삭제 완료 시 실제 저장은 서버·로컬 연동 방식에 따릅니다. 저장 실패 시 데이터가 반영되지 않을 수 있습니다.</li>
-            <li class="caution">인쇄 시 insurance/prebargaining 테이블은 내용이 길면 줄바꿈되며, information 등은 말줄임으로 표시될 수 있습니다.</li>
+            <li class="caution">Excel 파일은 앱과 같은 경로에 두어야 하며, 시트의 첫 행은 반드시 헤더(컬럼명)로 사용됩니다. 컬럼명이 코드와 다르면 해당 기능이 동작하지 않을 수 있으므로, 도움말의 "필요한 파일 및 로드"와 콘솔 로그를 참고해 맞추세요.</li>
+            <li class="caution">주민번호·연락처 등 개인정보가 화면에 표시됩니다. 사용 환경에 맞게 접근 제한, 화면 보호 등 보안을 유지하세요.</li>
+            <li class="caution">DB고객 세부내용의 입력/수정/삭제, accident 입력, counsel 전송 등은 서버 API(/api/accident, /api/counsel 등)와 연동됩니다. Python 서버(app.py)를 실행한 상태에서 사용해야 저장이 반영됩니다. 저장 실패 시 알림이 뜨며 데이터가 반영되지 않을 수 있습니다.</li>
           </ul>
         </div>
       </div>
@@ -294,7 +384,6 @@
     <div class="assign-box">
       <div class="assign-box-header">
         <h3>배정자료</h3>
-        <button type="button" class="assign-print-btn" id="assign-print-btn">출력</button>
       </div>
       <div class="assign-table-wrap">
         <div id="assign-table-inner" class="placeholder">배정자료 버튼을 누르면 information/insurance 데이터를 배정일자·계약자순으로 표시합니다.</div>
@@ -303,13 +392,17 @@
   </div>
 
   <main class="body">
-    <!-- 테이블 종류: (1) detail-form DB고객 세부내용 입력폼 (2) info-table kb023_information.xlsx (3) prebargaining-table kb023_prebargaining.xlsx -->
+    <!-- 테이블: detail-form, info-table, insurance, accident-table, counsel-table -->
     <section class="container" id="left-container">
+      <h3>information</h3>
+      <div class="table-wrap">
+        <div id="info-table" class="placeholder">kb023_information.xlsx 자동 로드됩니다.</div>
+      </div>
       <div class="table-wrap">
         <table class="detail-form">
           <tbody>
             <tr>
-              <td colspan="7" class="main-title section-border" style="border-right: none;">DB고객 세부내용</td>
+              <td colspan="7" class="main-title section-border" style="border-right: none; font-size: 1rem; font-weight: bold; text-align: left;">DB고객 세부내용</td>
               <td colspan="2" class="section-border" style="vertical-align: middle; text-align: right; background: #f0f4f8; border-left: none;">
                 <select id="detail-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;" disabled>
                   <option value="조회">조회</option>
@@ -323,29 +416,36 @@
             </tr>
             <tr>
               <td rowspan="2" class="section-label">배정구분</td>
-              <td class="label-cell">배정일</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="배정일" placeholder="yyyy/mm/dd" maxlength="10" /></td>
-              <td class="label-cell">종료일</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="종료일" placeholder="yyyy/mm/dd" maxlength="10" /></td>
+              <td class="label-cell">배정일자</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="배정일자" placeholder="yy/mm/dd" maxlength="10" /></td>
+              <td class="label-cell">종료일자</td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="종료일자" placeholder="yy/mm/dd" maxlength="10" /></td>
               <td class="label-cell">DB종류</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="DB종류" placeholder="DB종류" /></td>
-              <td class="value-cell"><input type="text" class="detail-input" placeholder="LMS 동의" value="LMS 동의" /></td>
+              <td class="value-cell" colspan="2"><input type="text" class="detail-input" data-field="DB종류" placeholder="DB종류" /></td>
               <td class="value-cell" style="text-align: center;">
-                <button type="button" id="db-agree-toggle" class="detail-form action-btn" data-value="동의">동의</button>
+                <label><input type="checkbox" id="detail-db-disagree" name="db-agree" /> 비동의</label>
               </td>
             </tr>
             <tr>
               <td class="label-cell">가능상품</td>
-              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="가능상품" placeholder="가능상품" /></td>
+              <td class="value-cell">
+                <select id="detail-possible-product" class="detail-input" data-field="가능상품">
+                  <option value="전체선택">전체선택</option>
+                </select>
+              </td>
               <td class="label-cell">타겟상품</td>
-              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="타겟상품" placeholder="타겟상품" /></td>
+              <td class="value-cell" colspan="5">
+                <select id="detail-target-product" class="detail-input" data-field="타겟상품">
+                  <option value="">선택</option>
+                </select>
+              </td>
             </tr>
             <tr>
-              <td rowspan="2" class="section-label">계약</td>
+              <td rowspan="2" class="section-label">계약내용</td>
               <td class="label-cell">계약자명</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="계약자명" placeholder="계약자명" /></td>
-              <td class="label-cell">주민등록번호</td>
-              <td class="value-cell"><input type="hidden" id="jumin-full" /><input type="text" id="jumin-input" class="detail-input" data-field="주민등록번호" placeholder="주민등록번호" maxlength="14" autocomplete="off" /></td>
+              <td class="label-cell">주민번호</td>
+              <td class="value-cell"><input type="hidden" id="jumin-full" /><input type="text" id="jumin-input" class="detail-input" data-field="주민번호" placeholder="주민번호" maxlength="14" autocomplete="off" /></td>
               <td class="label-cell">연락처</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="연락처" placeholder="연락처" /></td>
               <td class="label-cell">피보험자</td>
@@ -358,11 +458,11 @@
               <td class="value-cell" colspan="5"><input type="text" class="detail-input" data-field="주소" placeholder="주소" /></td>
             </tr>
             <tr>
-              <td rowspan="4" class="section-label">계약사항</td>
+              <td rowspan="4" class="section-label">계약상세</td>
               <td class="label-cell">상품종류</td>
               <td class="value-cell">
                 <select id="detail-product-type" class="detail-input" data-field="상품종류">
-                  <option value="">선택</option>
+                  <option value="전체선택">전체선택</option>
                 </select>
               </td>
               <td class="label-cell">상품명</td>
@@ -376,7 +476,7 @@
               <td class="label-cell">증권번호</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="증권번호" placeholder="증권번호" /></td>
               <td class="label-cell">납입만기</td>
-              <td class="value-cell"><input type="text" class="detail-input" data-field="납입만기" placeholder="yyyy/mm/dd" maxlength="10" /></td>
+              <td class="value-cell"><input type="text" class="detail-input" data-field="납입만기" placeholder="yy/mm/dd" maxlength="10" /></td>
               <td class="label-cell">주요담보</td>
               <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주요담보" placeholder="주요담보" /></td>
             </tr>
@@ -395,43 +495,103 @@
               <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="해지환급금" inputmode="numeric" placeholder="0" /></td>
               <td class="label-cell">대출금</td>
               <td class="value-cell"><input type="text" class="detail-input detail-amount" data-field="대출금" inputmode="numeric" placeholder="0" /></td>
-              <td class="label-cell">주의사항</td>
-              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="주의사항" placeholder="주의사항" /></td>
+              <td class="label-cell">참고사항</td>
+              <td class="value-cell" colspan="3"><input type="text" class="detail-input" data-field="참고사항" placeholder="참고사항" /></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <h3 style="margin-top: 0.5rem;">information</h3>
-      <div class="table-wrap">
-        <div id="info-table" class="placeholder">kb023_information.xlsx 자동 로드됩니다.</div>
+      <h3 style="margin-top: 0.5rem;">insurance</h3>
+      <div class="table-wrap table-rows-4">
+        <div id="insurance-table" class="placeholder">information에서 행을 선택하면 데이터가 출력됩니다.</div>
       </div>
     </section>
     <section class="container" id="right-container">
-      <h3>insurance</h3>
-      <div class="table-wrap-half">
-        <div id="insurance-table" class="placeholder">information에서 행을 선택하면 계약자명/주민등록번호 기준 insurance 데이터가 표시됩니다.</div>
-      </div>
-      <h3 style="margin-top: 0.5rem;">prebargaining</h3>
-      <div class="table-wrap-half prebargaining-box">
-        <div class="prebargaining-chat-inner">
-          <div class="chat-messages" id="prebargaining-chat-messages"></div>
-          <div class="chat-input-row">
-            <span id="prebargaining-current-name" class="chat-current-name" title="information에서 선택한 계약자명"></span>
-            <input type="text" class="chat-input" id="prebargaining-chat-input" placeholder="메시지 입력" />
-            <select id="prebargaining-send-type" class="chat-send-type" title="문(가입자) / 답(상담자)">
-              <option value="문">문(가입자)</option>
-              <option value="답">답(상담자)</option>
-            </select>
-            <button type="button" class="chat-send-btn" id="prebargaining-send-btn">전송</button>
+      <div class="right-top" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <h3>counsel</h3>
+        <div class="counsel-section" style="display: flex; flex-direction: column; flex: 0 0 auto; min-height: 0; gap: 0;">
+          <div class="counsel-past-wrap" style="min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: #fff; border: 1px solid #e0e0e0; border-radius: 4px;">
+            <div id="counsel-past-messages" class="chat-messages" style="flex: 1; min-height: 0; overflow-y: auto;"><div class="counsel-empty-text">과거 상담 내용이 없습니다.</div></div>
           </div>
+          <div class="counsel-chat-box" style="display: flex; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
+            <div style="font-size: 0.85rem; color: #2c5282; padding: 0.25rem 0.5rem; font-weight: bold;">오늘 상담 (기록)</div>
+            <div class="chat-messages" id="counsel-today-messages"></div>
+            <div class="chat-input-row">
+              <select id="counsel-send-type" class="chat-send-type" title="문(가입자) / 답(상담자)">
+                <option value="문">문(가입자)</option>
+                <option value="답">답(상담자)</option>
+              </select>
+              <input type="text" class="chat-input counsel-chat-input" id="counsel-chat-input" placeholder="오늘 상담 메시지 입력" />
+              <button type="button" class="chat-send-btn" id="counsel-send-btn">전송</button>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem;">
+          <h3 style="margin: 0;">accident</h3>
+          <span>
+            <select id="accident-mode" class="detail-input" style="width: auto; min-width: 5em; margin-right: 0.5rem;" disabled>
+              <option value="입력">입력</option>
+              <option value="수정">수정</option>
+              <option value="삭제">삭제</option>
+            </select>
+            <button type="button" id="accident-complete-btn" class="detail-form action-btn" disabled>완료</button>
+          </span>
+        </div>
+        <div class="table-wrap table-rows-4">
+          <div id="accident-table" class="placeholder">information에서 행을 선택하면 데이터가 출력됩니다.</div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">KB 고객관리 &middot; 세부내용 관리</footer>
+  <footer class="footer">
+    <span>KB 고객관리 &middot; 세부내용 관리</span>
+    <button type="button" class="footer-btn" id="btn-work-end">작업종료</button>
+  </footer>
 
   <script>
+    function syncCounselHeightToLeft() {
+      var left = document.getElementById('left-container');
+      var counselSection = document.querySelector('#right-container .counsel-section');
+      if (!left || left.children.length < 3) return;
+      var infoWrap = left.children[1];
+      var detailWrap = left.children[2];
+      var pastWrap = document.querySelector('#right-container .counsel-past-wrap');
+      var chatBox = document.querySelector('#right-container .counsel-chat-box');
+      var infoH = 0, detailH = 0;
+      if (pastWrap && infoWrap) {
+        infoH = Math.max(0, Math.round(infoWrap.getBoundingClientRect().height));
+        pastWrap.style.flex = 'none';
+        pastWrap.style.height = infoH + 'px';
+      }
+      if (chatBox && detailWrap) {
+        detailH = Math.max(0, Math.round(detailWrap.getBoundingClientRect().height));
+        chatBox.style.flex = 'none';
+        chatBox.style.height = detailH + 'px';
+      }
+      if (counselSection) {
+        counselSection.style.flex = '0 0 auto';
+        counselSection.style.height = Math.max(0, infoH + detailH + 4) + 'px';
+      }
+      var counselInput = document.getElementById('counsel-chat-input');
+      if (counselInput && counselSection) {
+        var w = counselInput.offsetWidth;
+        if (w > 0) counselSection.style.setProperty('--counsel-input-width', w + 'px');
+      }
+    }
+    window.syncCounselHeightToLeft = syncCounselHeightToLeft;
+    window.addEventListener('DOMContentLoaded', function () {
+      syncCounselHeightToLeft();
+      window.addEventListener('resize', syncCounselHeightToLeft);
+      requestAnimationFrame(function () { syncCounselHeightToLeft(); });
+    });
+    /* xlsx ↔ 테이블 매핑
+     * kb023_information.xlsx → info-table (시트 1:1)
+     * kb023_insurance.xlsx   → insurance-table (시트 헤더 1:1, 계약자별 필터)
+     * kb023_accident.xlsx    → accident-table (시트 컬럼 1:1, 계약자별 필터) + /api/accident 저장
+     * kb023_counse.xlsx      → 과거 상담(문/답 형식) + 오늘 상담 전송 시 /api/counsel 저장
+     * kb023_products.xlsx    → 상품종류/상품명 드롭다운 (테이블 아님)
+     */
     function formatCellForInfo(cell) {
       if (cell == null || cell === '') return '';
       if (typeof cell === 'number') {
@@ -457,70 +617,116 @@
       if (match) return match[1].slice(-2) + '/' + match[2].padStart(2, '0') + '/' + match[3].padStart(2, '0');
       return s.replace(/</g, '&lt;');
     }
-    function renderSheetToDiv(workbook, targetId) {
-      var el = document.getElementById(targetId);
-      if (!workbook || !workbook.SheetNames || !workbook.SheetNames.length) {
-        el.innerHTML = '<div class="placeholder">유효한 시트가 없습니다.</div>';
-        return;
+    // xlsx 컬럼 ↔ 테이블 매칭 검증 (디버그 콘솔)
+    function debugXlsxColumns(name, headers, expectedKeys) {
+      if (!headers || !Array.isArray(headers)) return;
+      console.log('[KB023] ' + name + ' 로드 컬럼:', headers.length, headers);
+      if (expectedKeys && expectedKeys.length) {
+        expectedKeys.forEach(function (k) {
+          if (headers.indexOf(k) === -1) console.warn('[KB023] ' + name + ' 컬럼 없음(매칭안됨):', k);
+        });
       }
-      var sheetName = workbook.SheetNames[0];
-      var sheet = workbook.Sheets[sheetName];
-      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-      if (!data || data.length === 0) {
-        el.innerHTML = '<div class="placeholder">데이터가 없습니다.</div>';
-        return;
+    }
+
+    var DETAIL_PLACEHOLDER_SELECT_ROW = 'information에서 행을 선택하면 데이터가 출력됩니다.';
+    // information 테이블 컬럼 너비 비율(상대값, 합으로 정규화) 및 정렬
+    var INFO_COL_WEIGHTS = {
+      '배정일자': 8, '종료일자': 8, '문자전송': 8, 'DB종류': 15, '계약자명': 8,
+      '주민번호': 10, '연락처': 10, '직업': 10, '피보험자': 8
+    };
+    var INFO_COL_ALIGN = {
+      '배정일자': 'center', '종료일자': 'center', '문자전송': 'center', 'DB종류': 'left',
+      '계약자명': 'center', '주민번호': 'center', '연락처': 'left',
+      '직업': 'left', '피보험자': 'center'
+    };
+    var INFO_COL_DEFAULT_WEIGHT = 8;
+    // information 테이블에 표시할 컬럼만 (순서대로). xlsx에 없으면 해당 컬럼은 제외.
+    var INFO_DISPLAY_HEADERS = ['배정일자', '종료일자', '문자전송', 'DB종류', '계약자명', '주민번호', '연락처', '직업', '피보험자'];
+    // kb023_information.xlsx → info-table (헤더·행은 시트와 1:1, 종료일자 제외 옵션)
+    function refreshInfoTableDisplay() {
+      var el = document.getElementById('info-table');
+      var data = window._infoTableData;
+      if (!el || !data || !data.headers || !data.rows) return;
+      var headers = data.headers;
+      var rows = data.rows;
+      var excludeChk = document.getElementById('info-exclude-enddate');
+      var excludeChecked = excludeChk && excludeChk.checked;
+      var colEnddate = headers.indexOf('종료일자');
+      var indices = rows.map(function (_, i) { return i; });
+      if (excludeChecked && colEnddate !== -1) {
+        indices = indices.filter(function (i) {
+          var v = rows[i][colEnddate];
+          return v == null || v === '' || (typeof v === 'string' && v.trim() === '');
+        });
       }
-      var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
-      var rows = data.slice(1);
-      var isInfo = targetId === 'info-table';
-      if (isInfo) window._infoTableData = { headers: headers, rows: rows };
-      var pct = headers.length ? (100 / headers.length).toFixed(2) + '%' : '100%';
+      var displayIndices = [];
+      var displayHeaders = [];
+      INFO_DISPLAY_HEADERS.forEach(function (name) {
+        var idx = headers.indexOf(name);
+        if (name === '주민번호' && idx === -1) idx = headers.indexOf('주민등록번호');
+        if (idx !== -1) { displayIndices.push(idx); displayHeaders.push(headers[idx]); }
+      });
+      var weights = displayHeaders.map(function (h) { return INFO_COL_WEIGHTS[h] != null ? INFO_COL_WEIGHTS[h] : INFO_COL_DEFAULT_WEIGHT; });
+      var sum = weights.reduce(function (a, b) { return a + b; }, 0);
+      var aligns = displayHeaders.map(function (h) { return (INFO_COL_ALIGN && INFO_COL_ALIGN[h]) || 'left'; });
       var html = '<table><colgroup>';
-      headers.forEach(function () { html += '<col style="width:' + pct + '">'; });
+      displayHeaders.forEach(function (h, i) {
+        var pct = sum > 0 ? ((weights[i] / sum) * 100).toFixed(2) + '%' : (displayHeaders.length ? (100 / displayHeaders.length).toFixed(2) + '%' : '100%');
+        html += '<col style="width:' + pct + '">';
+      });
       html += '</colgroup><thead><tr>';
-      headers.forEach(function (h) {
-        var text = (h != null ? String(h).replace(/</g, '&lt;') : '');
-        html += '<th>' + text + '</th>';
+      displayHeaders.forEach(function (h, i) {
+        var align = aligns[i] || 'left';
+        html += '<th style="text-align:' + align + '">' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
       });
       html += '</tr></thead><tbody>';
-      rows.forEach(function (row, rowIndex) {
+      indices.forEach(function (rowIndex) {
+        var row = rows[rowIndex];
         html += '<tr data-row-index="' + rowIndex + '">';
-        headers.forEach(function (_, i) {
-          var cell = row[i];
-          var text = (cell != null ? String(cell).replace(/</g, '&lt;') : '');
-          if (isInfo) {
-            text = formatCellForInfo(cell);
-            /* information 테이블에서는 주민번호/주민등록번호 컬럼 마스킹하지 않음, 그대로 표시 */
-          } else if (cell != null && cell !== '') {
-            text = String(cell).replace(/</g, '&lt;');
-          }
-          html += '<td>' + text + '</td>';
+        displayIndices.forEach(function (colIdx, i) {
+          var cell = row[colIdx];
+          var text = (cell != null && cell !== '') ? formatCellForInfo(cell) : '';
+          var align = aligns[i] || 'left';
+          html += '<td style="text-align:' + align + '">' + text + '</td>';
         });
         html += '</tr>';
       });
       html += '</tbody></table>';
       el.innerHTML = html;
-      if (isInfo && typeof window._onInfoRowClick === 'function') {
+      if (typeof window.syncCounselHeightToLeft === 'function') {
+        requestAnimationFrame(function () { window.syncCounselHeightToLeft(); });
+      }
+      if (typeof window._onInfoRowClick === 'function') {
         el.querySelector('tbody').addEventListener('click', function (e) {
           var tr = e.target && e.target.closest('tbody tr');
           if (tr && tr.dataset.rowIndex !== undefined) window._onInfoRowClick(parseInt(tr.dataset.rowIndex, 10));
         });
       }
     }
-
-    function loadFile(file, targetId) {
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        try {
-          var ab = e.target.result;
-          var wb = XLSX.read(ab, { type: 'array' });
-          renderSheetToDiv(wb, targetId);
-        } catch (err) {
-          document.getElementById(targetId).innerHTML =
-            '<div class="placeholder">파일을 읽을 수 없습니다: ' + err.message + '</div>';
-        }
-      };
-      reader.readAsArrayBuffer(file);
+    function renderInfoTable(workbook) {
+      var el = document.getElementById('info-table');
+      if (!el) return;
+      if (!workbook || !workbook.SheetNames || !workbook.SheetNames.length) {
+        el.innerHTML = '<div class="placeholder">유효한 시트가 없습니다.</div>';
+        return;
+      }
+      var sheet = workbook.Sheets[workbook.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!data || data.length === 0) {
+        el.innerHTML = '<div class="placeholder">데이터가 없습니다.</div>';
+        return;
+      }
+      var headers = data[0].map(function (h) { var s = h != null ? String(h).trim() : ''; return s === '주민등록번호' ? '주민번호' : s; });
+      var rows = data.slice(1);
+      debugXlsxColumns('information', headers, ['계약자명', '주민번호', '배정일자', '문자전송', 'DB종류', '연락처']);
+      window._infoTableData = { headers: headers, rows: rows };
+      refreshInfoTableDisplay();
+      var excludeChk = document.getElementById('info-exclude-enddate');
+      if (excludeChk) {
+        excludeChk.removeEventListener('change', window._onInfoExcludeEnddateChange);
+        window._onInfoExcludeEnddateChange = function () { refreshInfoTableDisplay(); };
+        excludeChk.addEventListener('change', window._onInfoExcludeEnddateChange);
+      }
     }
 
     (function () {
@@ -543,23 +749,20 @@
       juminInput.addEventListener('blur', function () {
         var raw = unmaskJumin(juminInput.value).slice(0, 13);
         juminFull.value = raw;
-        juminInput.value = maskJumin(raw);
+        juminInput.value = raw.length <= 6 ? raw : raw.slice(0, 6) + '-' + raw.slice(6, 13);
       });
     })();
 
-    // kb023_information.xlsx 자동 로드 (DB고객 세부내용 아래 테이블)
+    // kb023_information.xlsx → info-table
     function tryAutoLoadInfo() {
       fetch('kb023_information.xlsx')
         .then(function (r) { return r.arrayBuffer(); })
-        .then(function (ab) {
-          var wb = XLSX.read(ab, { type: 'array' });
-          renderSheetToDiv(wb, 'info-table');
-        })
+        .then(function (ab) { return renderInfoTable(XLSX.read(ab, { type: 'array' })); })
         .catch(function () {});
     }
     tryAutoLoadInfo();
 
-    // kb023_insurance.xlsx 로드 후 키(계약자명/주민등록번호)로 조회용 저장
+    // kb023_insurance.xlsx 로드 후 키(계약자명/주민번호)로 조회용 저장
     window._insuranceData = null;
     function tryAutoLoadInsurance() {
       fetch('kb023_insurance.xlsx')
@@ -570,22 +773,28 @@
           var sheet = wb.Sheets[wb.SheetNames[0]];
           var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
           if (!data || data.length < 2) return;
-          var headers = data[0].map(function (h) { return h != null ? String(h).trim() : ''; });
+          var headers = data[0].map(function (h) {
+            var s = h != null ? String(h).trim() : '';
+            if (s === '보험종류') return '상품종류';
+            if (s === '주민등록번호') return '주민번호';
+            return s;
+          });
           var rows = data.slice(1).map(function (row) {
             var o = {};
             headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
             return o;
           });
+          debugXlsxColumns('insurance', headers, ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '월보험료', '납입보험료', '총보험료', '해지환급금', '대출금']);
           window._insuranceData = { headers: headers, rows: rows };
         })
         .catch(function () {});
     }
     tryAutoLoadInsurance();
 
-    // kb023_prebargaining.xlsx 로드 (선택 계약자명/주민등록번호 기준 올림차순 출력용)
-    window._prebargainingData = null;
-    function tryAutoLoadPrebargaining() {
-      fetch('kb023_prebargaining.xlsx')
+    // kb023_accident.xlsx 로드 (선택 계약자명/주민번호 기준 출력용)
+    window._accidentData = null;
+    function tryAutoLoadAccident() {
+      return fetch('kb023_accident.xlsx')
         .then(function (r) { return r.arrayBuffer(); })
         .then(function (ab) {
           var wb = XLSX.read(ab, { type: 'array' });
@@ -595,29 +804,76 @@
           if (!data || data.length < 2) return;
           var headers = data[0].map(function (h) {
             var s = h != null ? String(h).trim() : '';
-            return s === 'Q/A' ? '문/답' : s;
+            if (s === 'Q/A') return '문/답';
+            if (s === '주민등록번호') return '주민번호';
+            return s;
           });
-          var rows = data.slice(1).map(function (row) {
+          var rows = data.slice(1).map(function (row, rowIdx) {
             var o = {};
             headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
+            o._fileRowIndex = rowIdx;
             return o;
           });
-          window._prebargainingData = { headers: headers, rows: rows };
+          debugXlsxColumns('accident', headers, ['계약자명', '주민번호', '사고일자', '사고내용', '기록일자', '문/답']);
+          window._accidentData = { headers: headers, rows: rows };
         })
         .catch(function () {});
     }
-    tryAutoLoadPrebargaining();
+    tryAutoLoadAccident();
 
-    var insuranceDisplayCols = ['보험상품', '상품명', '증권번호', '납입만기', '주요담보'];
-    var insuranceColWidths = ['10%', '60%', '10%', '10%', '10%'];
+    // kb023_counse.xlsx 로드 (계약자명/주민번호 기준 counsel 테이블·대화상자)
+    window._counselData = null;
+    function loadCounselFromAb(ab) {
+      var wb = XLSX.read(ab, { type: 'array' });
+      if (!wb || !wb.SheetNames || !wb.SheetNames.length) return;
+      var sheet = wb.Sheets[wb.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      if (!data || data.length < 2) return;
+      var headers = data[0].map(function (h) { var s = h != null ? String(h).trim() : ''; return s === '주민등록번호' ? '주민번호' : s; });
+      var rows = data.slice(1).map(function (row) {
+        var o = {};
+        headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
+        return o;
+      });
+      debugXlsxColumns('counsel', headers, ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용']);
+      window._counselData = { headers: headers, rows: rows };
+    }
+    function tryAutoLoadCounsel() {
+      fetch('kb023_counse.xlsx')
+        .then(function (r) { return r.arrayBuffer(); })
+        .then(loadCounselFromAb)
+        .catch(function () {});
+    }
+    tryAutoLoadCounsel();
+
+    // kb023_insurance.xlsx → insurance-table (시트 헤더와 1:1)
+    var INSURANCE_AMOUNT_KEYS = { '월보험료': 1, '납입보험료': 1, '총보험료': 1, '해지환급금': 1, '대출금': 1 };
     function formatInsuranceCell(val, key) {
       if (val == null || val === '') return '';
-      if (key === '납입만기' && typeof val === 'number' && val >= 1 && val < 3000000) {
+      if (INSURANCE_AMOUNT_KEYS[key]) {
+        var n = typeof val === 'number' ? val : Math.floor(Number(String(val).replace(/,/g, '')));
+        if (!isNaN(n)) return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return String(val).replace(/</g, '&lt;');
+      }
+      if (typeof val === 'number' && val >= 1 && val < 3000000) {
         var d = XLSX.SSF.parse_date_code(val);
-        if (d && d.y >= 1900) return d.y + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+        if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
       }
       return String(val).replace(/</g, '&lt;');
     }
+    window._formatInsuranceCell = formatInsuranceCell;
+    var EXCLUDE_COLUMNS = { '계약자명': 1, '주민번호': 1, '참고사항': 1, '주의사항': 1 };
+    // insurance 테이블: 첨부 이미지와 동일한 2단 헤더, 7열 (상품종류·상품명·증권번호 | 납입만기/납입보험료 | 주요담보/총보험료 | 월보험료/해지환급금 | 납입방법/대출금)
+    var INSURANCE_COL_PAIRS = [
+      ['상품종류'],
+      ['상품명'],
+      ['증권번호'],
+      ['납입만기', '납입보험료'],
+      ['주요담보', '총보험료'],
+      ['월보험료', '해지환급금'],
+      ['납입방법', '대출금']
+    ];
+    var INSURANCE_COL_WEIGHTS_7 = [10, 10, 10, 12, 12, 12, 12];
     function renderInsuranceTable(headers, rows) {
       var el = document.getElementById('insurance-table');
       if (!el) return;
@@ -629,18 +885,38 @@
         el.innerHTML = '<div class="placeholder">해당 계약자/주민번호의 보험 데이터가 없습니다.</div>';
         return;
       }
-      var html = '<table><colgroup>';
-      insuranceColWidths.forEach(function (w) { html += '<col style="width:' + w + '">'; });
-      html += '</colgroup><thead><tr>';
-      insuranceDisplayCols.forEach(function (h) {
-        html += '<th>' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
+      window._currentInsuranceRows = rows;
+      var sum = INSURANCE_COL_WEIGHTS_7.reduce(function (a, b) { return a + b; }, 0);
+      var html = '<table class="insurance-two-row-header"><colgroup>';
+      INSURANCE_COL_WEIGHTS_7.forEach(function (w) {
+        var pct = sum > 0 ? ((w / sum) * 100).toFixed(2) + '%' : (100 / 7).toFixed(2) + '%';
+        html += '<col style="width:' + pct + '">';
       });
+      html += '</colgroup><thead><tr>';
+      html += '<th class="ins-th-rowspan" rowspan="2">상품종류</th>';
+      html += '<th class="ins-th-rowspan" rowspan="2">상품명</th>';
+      html += '<th class="ins-th-rowspan" rowspan="2">증권번호</th>';
+      html += '<th>납입만기</th><th>주요담보</th><th>월보험료</th><th>납입방법</th>';
+      html += '</tr><tr>';
+      html += '<th>납입보험료</th><th>총보험료</th><th>해지환급금</th><th>대출금</th>';
       html += '</tr></thead><tbody>';
-      rows.forEach(function (row) {
-        html += '<tr>';
-        insuranceDisplayCols.forEach(function (key) {
-          var cell = row[key] != null ? row[key] : '';
-          html += '<td>' + formatInsuranceCell(cell, key) + '</td>';
+      rows.forEach(function (row, idx) {
+        html += '<tr data-row-index="' + idx + '">';
+        INSURANCE_COL_PAIRS.forEach(function (keys) {
+          var parts = keys.map(function (key) { return formatInsuranceCell(row[key] != null ? row[key] : '', key); });
+          var isAmount = keys.some(function (k) { return INSURANCE_AMOUNT_KEYS[k]; });
+          var tdCls = isAmount ? ' detail-amount' : '';
+          if (parts.length > 1) tdCls += ' ins-cell-double';
+          var content = '';
+          if (parts.length > 1) {
+            parts.forEach(function (p, i) {
+              var s = (p != null ? String(p) : '').replace(/</g, '&lt;');
+              content += '<span class="ins-cell-line">' + s + '</span>';
+            });
+          } else {
+            content = (parts[0] != null ? String(parts[0]).replace(/</g, '&lt;') : '');
+          }
+          html += '<td class="' + tdCls.trim() + '">' + content + '</td>';
         });
         html += '</tr>';
       });
@@ -657,18 +933,168 @@
       var s = Math.round(((t * 24 - h) * 60 - m) * 60);
       return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
-    var prebargainingDisplayCols = ['계약자명', '구분', '기록일자', '기록시간', '문/답', '세부내용'];
-    var prebargainingColWidths = ['10%', '8%', '8%', '8%', '6%', '60%'];
-    function formatPrebargainingCell(row, key) {
-      if (key === '기록시간') return excelSerialToHhMmSs(row['기록일자']);
-      if (key === '문/답') { var v = row['문/답']; return (v != null ? String(v) : '').replace(/</g, '&lt;'); }
+    // kb023_accident.xlsx → accident-table (시트 헤더·행 1:1)
+    function formatAccidentCell(row, key) {
       var cell = row[key] != null ? row[key] : '';
-      if (key === '기록일자' && typeof cell === 'number' && cell >= 1 && cell < 3000000) {
-        var d = XLSX.SSF.parse_date_code(cell);
-        if (d && d.y >= 1900) return d.y + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+      if (key === '기록시간') return excelSerialToHhMmSs(cell || row['기록일자']);
+      if (key === '문/답' || key === 'Q/A') return (cell != null ? String(cell) : '').replace(/</g, '&lt;');
+      if (typeof cell === 'number') {
+        if (cell >= 1 && cell < 3000000) {
+          var d = XLSX.SSF.parse_date_code(cell);
+          if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+        }
+        if (cell > 0 && cell < 1) return excelSerialToHhMmSs(cell);
       }
       return String(cell).replace(/</g, '&lt;');
     }
+    window._formatAccidentCell = formatAccidentCell;
+    // accident 테이블 컬럼 너비 비율: 1열 8, 2열 84, 3열 8, 나머지 8 (합으로 정규화)
+    var accidentColWeights = [8, 84, 8];
+    var accidentColDefaultWeight = 8;
+    window._currentAccidentHeaders = null;
+    window._currentAccidentRows = null;
+    window._accidentMode = '입력';
+    window._accidentEditRowIndex = null;
+    window._accidentDeleteSelectedRowIndex = null;
+    function renderAccidentTable(headers, rows) {
+      var el = document.getElementById('accident-table');
+      if (!el) return;
+      if (!headers || headers.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자의 accident 데이터가 없습니다.</div>';
+        return;
+      }
+      window._currentAccidentHeaders = headers;
+      window._currentAccidentRows = rows ? rows.slice() : [];
+      var mode = window._accidentMode || '입력';
+      var displayHeaders = headers.filter(function (h) { return !EXCLUDE_COLUMNS[h]; });
+      if (displayHeaders.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자의 accident 데이터가 없습니다.</div>';
+        return;
+      }
+      var hasRows = window._currentAccidentRows.length > 0;
+      if (!hasRows && mode !== '입력') {
+        el.innerHTML = '<div class="placeholder">해당 계약자의 accident 데이터가 없습니다.</div>';
+        return;
+      }
+      var weights = [];
+      var totalWeight = 0;
+      for (var i = 0; i < displayHeaders.length; i++) {
+        var w = accidentColWeights[i] !== undefined ? accidentColWeights[i] : accidentColDefaultWeight;
+        weights.push(w);
+        totalWeight += w;
+      }
+      var html = '<table><colgroup>';
+      displayHeaders.forEach(function (h, i) {
+        var pct = totalWeight > 0 ? ((weights[i] / totalWeight) * 100).toFixed(2) + '%' : '8%';
+        html += '<col style="width:' + pct + '">';
+      });
+      html += '</colgroup><thead><tr>';
+      displayHeaders.forEach(function (h) { html += '<th>' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>'; });
+      html += '</tr></thead><tbody>';
+      window._currentAccidentRows.forEach(function (row, idx) {
+        var isEditRow = (mode === '수정' && window._accidentEditRowIndex === idx);
+        var isDeleteSelected = (mode === '삭제' && window._accidentDeleteSelectedRowIndex === idx);
+        var trCls = isDeleteSelected ? ' accident-row-delete-selected' : '';
+        html += '<tr data-row-index="' + idx + '" class="' + trCls.trim() + '">';
+        displayHeaders.forEach(function (key) {
+          if (isEditRow) {
+            var val = row[key] != null ? String(row[key]).replace(/</g, '&lt;') : '';
+            if (key === '사고일자' || key === '사고내용') {
+              html += '<td><input type="text" class="accident-inline-input" data-key="' + String(key).replace(/"/g, '&quot;') + '" value="' + val + '" style="width:100%; box-sizing:border-box;" /></td>';
+            } else {
+              html += '<td>' + formatAccidentCell(row, key) + '</td>';
+            }
+          } else {
+            html += '<td>' + formatAccidentCell(row, key) + '</td>';
+          }
+        });
+        html += '</tr>';
+      });
+      if (mode === '입력') {
+        html += '<tr class="accident-input-row">';
+        displayHeaders.forEach(function (key) {
+          if (key === '사고일자') {
+            html += '<td><input type="text" class="accident-inline-input" data-key="사고일자" placeholder="yy/mm/dd" style="width:100%; box-sizing:border-box;" /></td>';
+          } else if (key === '사고내용') {
+            html += '<td><input type="text" class="accident-inline-input" data-key="사고내용" placeholder="사고내용" style="width:100%; box-sizing:border-box;" /></td>';
+          } else {
+            html += '<td></td>';
+          }
+        });
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+    // 과거 상담: counsel xlsx 행을 accident와 동일한 문/답 채팅 형식으로 표시
+    var WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+    function formatCounselDateLabel(dateNum, timeNum) {
+      if (dateNum == null && timeNum == null) return '';
+      if (dateNum != null && typeof dateNum === 'number' && dateNum >= 1 && dateNum < 3000000) {
+        var d = XLSX.SSF.parse_date_code(dateNum);
+        if (d && d.y >= 1900) {
+          var yy = String(d.y).slice(-2);
+          var mm = String(d.m).padStart(2, '0');
+          var dd = String(d.d).padStart(2, '0');
+          var dateObj = new Date(d.y, d.m - 1, d.d);
+          return yy + '/' + mm + '/' + dd + ' (' + WEEKDAY_KO[dateObj.getDay()] + ')';
+        }
+      }
+      return '';
+    }
+    function formatCounselTimeOnly(dateNum, timeNum) {
+      if (timeNum != null && typeof timeNum === 'number') {
+        var t = timeNum - Math.floor(timeNum);
+        if (t > 0 && t < 1) {
+          var h = Math.floor(t * 24), m = Math.floor((t * 24 - h) * 60);
+          return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        }
+      }
+      return '';
+    }
+    // 과거 상담: counsel xlsx 데이터만 표시. 오늘 상담 메시지는 포함하지 않음.
+    function updateCounselPastChat(counselRows) {
+      var el = document.getElementById('counsel-past-messages');
+      if (!el) return;
+      if (!counselRows || counselRows.length === 0) {
+        el.innerHTML = '<div class="placeholder">해당 계약자의 과거 상담이 없습니다.</div>';
+        return;
+      }
+      var detailKey = '세부내용';
+      var qaKey = '문/답';
+      var dateKey = '기록일자';
+      var timeKey = '기록시간';
+      var list = [];
+      counselRows.forEach(function (row) {
+        var detail = (row[detailKey] != null ? String(row[detailKey]) : (row['상담내용'] != null ? String(row['상담내용']) : '')).trim();
+        if (!detail) return;
+        var qaVal = (row[qaKey] != null ? String(row[qaKey]) : '').trim();
+        var isDap = qaVal === '답' || qaVal === 'A' || String(qaVal).toUpperCase().indexOf('답') !== -1;
+        list.push({ type: isDap ? '답' : '문', text: detail, date: row[dateKey] != null ? row[dateKey] : row['상담일자'], time: row[timeKey] != null ? row[timeKey] : row['상담시간'] });
+      });
+      list.sort(function (a, b) {
+        var da = a.date != null ? a.date : 0, db = b.date != null ? b.date : 0;
+        if (da !== db) return da > db ? 1 : -1;
+        var ta = a.time != null ? a.time : 0, tb = b.time != null ? b.time : 0;
+        return ta > tb ? 1 : ta < tb ? -1 : 0;
+      });
+      var html = '';
+      list.forEach(function (msg) {
+        var dateLabel = formatCounselDateLabel(msg.date, msg.time);
+        var timeStr = formatCounselTimeOnly(msg.date, msg.time);
+        var dateTimeStr = (dateLabel ? dateLabel + ' ' : '') + (timeStr || '');
+        var esc = (msg.text || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
+        var isDap = msg.type === '답';
+        var rowCls = isDap ? 'chat-msg-row msg-row-dap' : 'chat-msg-row msg-row-mun';
+        var bubbleCls = isDap ? 'chat-msg msg-dap' : 'chat-msg msg-mun';
+        html += '<div class="' + rowCls + '">';
+        html += '<div class="' + bubbleCls + '">' + esc + '</div>';
+        html += '<span class="chat-msg-time">' + (dateTimeStr || '').replace(/</g, '&lt;') + '</span>';
+        html += '</div>';
+      });
+      el.innerHTML = html || '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
+    }
+    window.updateCounselPastChat = updateCounselPastChat;
     // kb023_products.xlsx 로드 (보험사 kblife 기준 상품종류/상품명 드롭다운)
     window._productsData = null;
     function tryAutoLoadProducts() {
@@ -686,8 +1112,10 @@
             headers.forEach(function (h, i) { o[h] = row[i] != null ? row[i] : ''; });
             return o;
           });
+          debugXlsxColumns('products', headers, ['보험사', '상품종류', '상품명']);
           window._productsData = { headers: headers, rows: rows };
           updateProductTypeOptions();
+          updateTargetProductOptions();
         })
         .catch(function () {});
     }
@@ -698,7 +1126,7 @@
       var sel = document.getElementById('detail-product-type');
       if (!sel) return;
       var products = window._productsData;
-      var html = '<option value="">선택</option>';
+      var html = '<option value="전체선택">전체선택</option>';
       if (products && products.rows && products.rows.length) {
         var set = {};
         products.rows.forEach(function (r) {
@@ -709,20 +1137,64 @@
         });
       }
       sel.innerHTML = html;
+      sel.value = '전체선택';
       updateProductNameOptions(sel.value);
+      updatePossibleProductOptions();
+    }
+    function updatePossibleProductOptions() {
+      var sel = document.getElementById('detail-possible-product');
+      if (!sel) return;
+      var products = window._productsData;
+      var html = '<option value="전체선택">전체선택</option>';
+      if (products && products.rows && products.rows.length) {
+        var set = {};
+        products.rows.forEach(function (r) {
+          var ins = (r['보험사'] != null ? String(r['보험사']) : '').trim();
+          if (ins.toLowerCase() !== KBLIFE) return;
+          var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
+          if (kind && !set[kind]) { set[kind] = true; html += '<option value="' + kind.replace(/"/g, '&quot;') + '">' + kind.replace(/</g, '&lt;') + '</option>'; }
+        });
+      }
+      sel.innerHTML = html;
+      sel.value = '전체선택';
+      updateTargetProductOptions(sel.value);
+    }
+    function updateTargetProductOptions(possibleProductKind) {
+      var sel = document.getElementById('detail-target-product');
+      if (!sel) return;
+      var products = window._productsData;
+      var html = '<option value="">선택</option>';
+      if (products && products.rows && products.rows.length) {
+        var filterByKind = possibleProductKind && possibleProductKind !== '전체선택';
+        var kindStr = filterByKind ? String(possibleProductKind).trim() : '';
+        products.rows.forEach(function (r) {
+          var ins = (r['보험사'] != null ? String(r['보험사']) : '').trim();
+          if (ins.toLowerCase() !== KBLIFE) return;
+          if (filterByKind) {
+            var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
+            if (kind !== kindStr) return;
+          }
+          var name = (r['상품명'] != null ? String(r['상품명']) : '').trim();
+          if (name) html += '<option value="' + name.replace(/"/g, '&quot;') + '">' + name.replace(/</g, '&lt;') + '</option>';
+        });
+      }
+      sel.innerHTML = html;
     }
     function updateProductNameOptions(productType) {
       var sel = document.getElementById('detail-product-name');
       if (!sel) return;
       var products = window._productsData;
       var html = '<option value="">선택</option>';
-      if (products && products.rows && products.rows.length && productType) {
-        var productTypeStr = String(productType).trim();
+      if (products && products.rows && products.rows.length) {
+        var filterByKind = productType && productType !== '전체선택';
+        var productTypeStr = filterByKind ? String(productType).trim() : '';
         products.rows.forEach(function (r) {
           var ins = (r['보험사'] != null ? String(r['보험사']) : '').trim();
           if (ins.toLowerCase() !== KBLIFE) return;
-          var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
-          if (kind !== productTypeStr) return;
+          if (filterByKind) {
+            var kind = (r['상품종류'] != null ? String(r['상품종류']) : '').trim();
+            if (kind !== productTypeStr) return;
+          }
           var name = (r['상품명'] != null ? String(r['상품명']) : '').trim();
           if (name) html += '<option value="' + name.replace(/"/g, '&quot;') + '">' + name.replace(/</g, '&lt;') + '</option>';
         });
@@ -734,12 +1206,18 @@
       var modeSel = document.getElementById('detail-mode');
       var productTypeSel = document.getElementById('detail-product-type');
       var productNameSel = document.getElementById('detail-product-name');
+      var possibleProductSel = document.getElementById('detail-possible-product');
+      var targetProductSel = document.getElementById('detail-target-product');
       function setProductDropdownsEnabled(enabled) {
         if (productTypeSel) productTypeSel.disabled = !enabled;
         if (productNameSel) productNameSel.disabled = !enabled;
+        if (possibleProductSel) possibleProductSel.disabled = !enabled;
+        if (targetProductSel) targetProductSel.disabled = !enabled;
         if (!enabled) {
           if (productTypeSel) productTypeSel.selectedIndex = 0;
           if (productNameSel) { productNameSel.innerHTML = '<option value="">선택</option>'; productNameSel.selectedIndex = 0; }
+          if (possibleProductSel) possibleProductSel.selectedIndex = 0;
+          if (targetProductSel) targetProductSel.selectedIndex = 0;
         }
       }
       function setDetailFormSectionsEnabled(enabled) {
@@ -750,46 +1228,292 @@
           el.disabled = !enabled;
         });
       }
+      function shouldDisableCompleteForInputModify() {
+        var possible = (possibleProductSel && possibleProductSel.value) ? possibleProductSel.value.trim() : '';
+        var ptype = (productTypeSel && productTypeSel.value) ? productTypeSel.value.trim() : '';
+        var target = (targetProductSel && targetProductSel.value) ? targetProductSel.value.trim() : '';
+        var pname = (productNameSel && productNameSel.value) ? productNameSel.value.trim() : '';
+        var isWhole = (possible === '전체선택' || ptype === '전체선택');
+        var isSelect = (target === '' || target === '선택' || pname === '' || pname === '선택');
+        return isWhole && isSelect;
+      }
       function setCompleteBtnEnabled(mode) {
         var btn = document.getElementById('detail-complete-btn');
         if (!btn) return;
-        var enable = mode === '입력' || mode === '수정' || mode === '삭제';
+        var enable = (mode === '입력' || mode === '수정' || mode === '삭제' || mode === '출력');
+        if (enable && (mode === '입력' || mode === '수정') && shouldDisableCompleteForInputModify()) enable = false;
         btn.disabled = !enable;
       }
       if (modeSel) {
         modeSel.addEventListener('change', function () {
           var mode = (this.value || '').trim();
           setCompleteBtnEnabled(mode);
-          if (mode === '출력') {
-            var outOpt = document.getElementById('detail-mode-output');
-            if (outOpt && !outOpt.disabled) {
-              window.print();
-              window.addEventListener('afterprint', function onAfterPrint() {
-                window.removeEventListener('afterprint', onAfterPrint);
-                if (modeSel) modeSel.value = '조회';
-                setCompleteBtnEnabled('조회');
-              });
-            }
-            return;
-          }
           if (mode === '입력') {
             clearDetailForm();
+            var insEl = document.getElementById('insurance-table');
+            if (insEl) insEl.innerHTML = '<div class="placeholder">' + DETAIL_PLACEHOLDER_SELECT_ROW + '</div>';
+            var pastEl = document.getElementById('counsel-past-messages');
+            if (pastEl) pastEl.innerHTML = '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
+            if (typeof window.updateCounselTodayChat === 'function') window.updateCounselTodayChat();
+            var accEl = document.getElementById('accident-table');
+            if (accEl) accEl.innerHTML = '<div class="placeholder">' + DETAIL_PLACEHOLDER_SELECT_ROW + '</div>';
+            window._currentAccidentHeaders = null;
+            window._currentAccidentRows = null;
           }
           var enable = mode === '입력' || mode === '수정';
           setProductDropdownsEnabled(enable);
           setDetailFormSectionsEnabled(enable);
-          if (enable) updateProductTypeOptions();
+          if (enable) { updateProductTypeOptions(); setCompleteBtnEnabled(mode); }
         });
         setCompleteBtnEnabled((modeSel.value || '').trim());
+      }
+      var detailCompleteBtn = document.getElementById('detail-complete-btn');
+      function doDetailPrint() {
+        var row = getDetailFormRow();
+        var nameKey = (row.계약자명 != null ? String(row.계약자명) : '').trim();
+        var juminKey = normalizeJumin(row.주민번호 != null ? row.주민번호 : '');
+        var insurance = window._insuranceData;
+        var accident = window._accidentData;
+        var counsel = window._counselData;
+        var insuranceRows = insurance && insurance.rows && insurance.rows.length ? filterByKey(insurance.rows, nameKey, juminKey) : [];
+        var accidentRows = accident && accident.rows && accident.rows.length ? filterByKey(accident.rows, nameKey, juminKey) : [];
+        var counselRows = counsel && counsel.rows && counsel.rows.length ? filterByKey(counsel.rows, nameKey, juminKey) : [];
+        var esc = function (s) { return (s != null ? String(s) : '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+        var detailHtml = '';
+        var formTable = document.querySelector('table.detail-form');
+        if (formTable) {
+          var clone = formTable.cloneNode(true);
+          clone.querySelectorAll('input, select, button').forEach(function (el) {
+            if (el.type === 'hidden') {
+              el.parentNode && el.parentNode.removeChild(el);
+              return;
+            }
+            var wrap = el.type === 'checkbox' && el.parentNode && el.parentNode.tagName === 'LABEL' ? el.parentNode : el;
+            var parent = wrap.parentNode;
+            if (!parent) return;
+            var span = document.createElement('span');
+            span.className = 'print-value';
+            if (el.tagName === 'SELECT') {
+              span.textContent = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '';
+            } else if (el.tagName === 'BUTTON') {
+              span.textContent = '';
+            } else if (el.type === 'checkbox') {
+              span.textContent = el.checked ? '비동의' : '동의';
+            } else {
+              span.textContent = el.value || '';
+            }
+            if (wrap === el) {
+              parent.replaceChild(span, el);
+            } else {
+              parent.replaceChild(span, wrap);
+            }
+          });
+          var firstRow = clone.querySelector('tbody tr');
+          if (firstRow) {
+            var cells = firstRow.querySelectorAll('td');
+            var lastCell = cells[cells.length - 1];
+            if (lastCell && lastCell.getAttribute('colspan') === '2') lastCell.innerHTML = '';
+          }
+          detailHtml = clone.outerHTML;
+        }
+        if (!detailHtml) {
+          var detailLabels = ['배정일자', '종료일자', '문자전송', 'DB종류', '가능상품', '타겟상품', '계약자명', '주민번호', '연락처', '피보험자', '직업', '주소', '상품종류', '상품명', '증권번호', '납입만기', '주요담보', '월보험료', '납입방법', '납입보험료', '총보험료', '해지환급금', '대출금', '참고사항'];
+          detailHtml = '<table class="detail-form"><thead><tr><th>항목</th><th>값</th></tr></thead><tbody>';
+          detailLabels.forEach(function (k) {
+            var v = row[k] != null ? row[k] : '';
+            if (k === '주민번호' && !v) v = row['주민번호'] != null ? row['주민번호'] : '';
+            detailHtml += '<tr><td>' + esc(k) + '</td><td>' + esc(v) + '</td></tr>';
+          });
+          detailHtml += '</tbody></table>';
+        }
+        var fmtIns = window._formatInsuranceCell;
+        var fmtAcc = window._formatAccidentCell;
+        var excludeCols = { '계약자명': 1, '주민번호': 1, '참고사항': 1, '주의사항': 1 };
+        function tableHtml(title, headers, rows, formatCell, tableClass, getRowClass) {
+          var hdrs = (headers || []).filter(function (h) { return !excludeCols[h]; });
+          if (hdrs.length === 0) return title ? '<div class="print-section-title">' + esc(title) + '</div><p>데이터 없음</p>' : '';
+          var tblCls = tableClass ? ' class="' + esc(tableClass) + '"' : '';
+          var h = '<div class="print-section-title">' + esc(title) + '</div><table' + tblCls + '><thead><tr>';
+          hdrs.forEach(function (th) { h += '<th>' + esc(th) + '</th>'; });
+          h += '</tr></thead><tbody>';
+          (rows || []).forEach(function (r) {
+            var rowCls = getRowClass ? getRowClass(r) : '';
+            h += rowCls ? '<tr class="' + esc(rowCls) + '">' : '<tr>';
+            hdrs.forEach(function (key) {
+              var val = formatCell ? formatCell(r, key) : (r[key] != null ? String(r[key]) : '');
+              if (typeof val !== 'string') val = val != null ? String(val) : '';
+              h += '<td>' + val + '</td>';
+            });
+            h += '</tr>';
+          });
+          h += '</tbody></table>';
+          return h;
+        }
+        var insColPairs = [['상품종류'], ['상품명'], ['증권번호'], ['납입만기', '납입보험료'], ['주요담보', '총보험료'], ['월보험료', '해지환급금'], ['납입방법', '대출금']];
+        function insurancePrintTableHtml(title, rows) {
+          var h = '<div class="print-section-title">' + esc(title) + '</div><table class="print-insurance-table"><thead><tr>';
+          h += '<th rowspan="2">상품종류</th><th rowspan="2">상품명</th><th rowspan="2">증권번호</th>';
+          h += '<th>납입만기</th><th>주요담보</th><th>월보험료</th><th>납입방법</th></tr><tr>';
+          h += '<th>납입보험료</th><th>총보험료</th><th>해지환급금</th><th>대출금</th></tr></thead><tbody>';
+          (rows || []).forEach(function (r) {
+            h += '<tr>';
+            insColPairs.forEach(function (keys) {
+              var parts = keys.map(function (key) {
+                var v = r[key] != null ? r[key] : '';
+                if ((key === '상품종류' || key === '상품명') && (v === '' || (typeof v === 'string' && v.trim() === ''))) return '자료없음';
+                return fmtIns ? fmtIns(v, key) : esc(v);
+              });
+              var cellContent = '';
+              if (parts.length > 1) {
+                parts.forEach(function (p) {
+                  var s = (p != null ? String(p) : '').replace(/</g, '&lt;');
+                  cellContent += '<span class="print-ins-cell-line">' + s + '</span>';
+                });
+              } else {
+                cellContent = (parts[0] != null ? String(parts[0]).replace(/</g, '&lt;') : '');
+              }
+              h += '<td>' + cellContent + '</td>';
+            });
+            h += '</tr>';
+          });
+          h += '</tbody></table>';
+          return h;
+        }
+        var insHtml = '';
+        if (insurance && insurance.headers) {
+          insHtml = insurancePrintTableHtml('kb023_insurance.xlsx', insuranceRows);
+        }
+        var accHtml = '';
+        if (accident && accident.headers) {
+          accHtml = tableHtml('kb023_accident.xlsx', accident.headers, accidentRows, function (r, key) {
+            return fmtAcc ? fmtAcc(r, key) : esc(r[key] != null ? r[key] : '');
+          }, 'print-accident-table');
+        }
+        var counHtml = '';
+        if (counsel && counsel.headers) {
+          counHtml = tableHtml('kb023_counsel.xlsx', counsel.headers, counselRows, function (r, key) {
+            return fmtAcc ? fmtAcc(r, key) : esc(r[key] != null ? r[key] : '');
+          }, 'print-counsel-table', function (r) {
+            var qa = r['문/답'] != null ? String(r['문/답']).trim() : (r['Q/A'] != null ? String(r['Q/A']).trim() : '');
+            return qa === '답' ? 'print-row-답' : 'print-row-문';
+          });
+        }
+        var printEl = document.getElementById('print-area');
+        if (!printEl) return;
+        var now = new Date();
+        var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var detailSection = (detailHtml.indexOf('class="detail-form"') !== -1) ? detailHtml : '<div class="print-section-title">DB고객 세부내용</div>' + detailHtml;
+        printEl.innerHTML = '<div class="print-main-title">KB 고객관리</div><div class="print-info-line"><span class="print-output-date">출력일: ' + todayStr + '</span><span class="print-page-info"></span></div>' + detailSection + insHtml + accHtml + counHtml;
+        document.body.classList.add('print-output');
+        function cleanup() {
+          document.body.classList.remove('print-output');
+          if (printEl) printEl.innerHTML = '';
+          if (modeSel) modeSel.value = '조회';
+          setCompleteBtnEnabled('조회');
+          setDetailFormSectionsEnabled(false);
+          window.removeEventListener('afterprint', cleanup);
+        }
+        window.addEventListener('afterprint', cleanup);
+        window.print();
+      }
+      if (detailCompleteBtn) {
+        detailCompleteBtn.addEventListener('click', function () {
+          var mode = (modeSel && modeSel.value) ? modeSel.value.trim() : '';
+          if (mode === '출력') {
+            doDetailPrint();
+            return;
+          }
+          if (mode !== '입력' && mode !== '수정' && mode !== '삭제') return;
+          var row = getDetailFormRow();
+          var rowForInsurance = Object.assign({}, row, { 주의사항: row.참고사항 });
+          var key = { 계약자명: (row.계약자명 || '').trim(), 주민번호: normalizeJumin(row.주민번호 || '') };
+          var infoHeaders = (window._infoTableData && window._infoTableData.headers) || [];
+          var run = function (url, body) {
+            return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
+          };
+          var done = function (clearForm) {
+            if (typeof tryAutoLoadInfo === 'function') tryAutoLoadInfo();
+            if (typeof tryAutoLoadInsurance === 'function') tryAutoLoadInsurance();
+            if (typeof tryAutoLoadAccident === 'function') tryAutoLoadAccident();
+            if (typeof tryAutoLoadCounsel === 'function') tryAutoLoadCounsel();
+            if (modeSel) modeSel.value = '조회';
+            setCompleteBtnEnabled('조회');
+            setDetailFormSectionsEnabled(false);
+            if (clearForm) {
+              if (typeof clearDetailForm === 'function') clearDetailForm();
+              window._selectedInfoRowIndex = null;
+            }
+          };
+          var fail = function (msg) {
+            alert(msg || '저장 실패. 서버(app.py)를 실행했는지 확인하세요.');
+          };
+          if (mode === '삭제') {
+            var rowIndex = window._selectedInfoRowIndex;
+            if (rowIndex == null) { fail('삭제할 행을 선택해 주세요.'); return; }
+            run('/api/information', { action: 'delete', rowIndex: rowIndex })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'delete', key: key }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/counsel', { action: 'delete', key: key }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/accident', { action: 'delete', key: key }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
+              .catch(function (e) { fail(e && e.message); });
+          } else if (mode === '수정') {
+            var rowIndex = window._selectedInfoRowIndex;
+            if (rowIndex == null) { fail('수정할 행을 선택해 주세요.'); return; }
+            var infoRow = {};
+            infoHeaders.forEach(function (h) {
+              var v = row[h];
+              if (v == null || v === '') v = (h === '주민번호') ? key.주민번호 : '';
+              infoRow[h] = v;
+            });
+            run('/api/information', { action: 'update', rowIndex: rowIndex, row: infoRow })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'update', key: key, row: rowForInsurance }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
+              .catch(function (e) { fail(e && e.message); });
+          } else {
+            var infoRow = {};
+            if (infoHeaders.length) infoHeaders.forEach(function (h) { infoRow[h] = row[h] != null ? row[h] : (h === '주민번호' ? key.주민번호 : ''); });
+            else infoRow = row;
+            run('/api/information', { action: 'insert', row: infoRow, headers: infoHeaders.length ? infoHeaders : undefined })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'insert', row: rowForInsurance }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/counsel', { headers: ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/accident', { headers: ['계약자명', '주민번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 구분: '', 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] }); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
+              .catch(function (e) { fail(e && e.message); });
+          }
+        });
       }
       if (productTypeSel) {
         productTypeSel.addEventListener('change', function () {
           updateProductNameOptions(this.value);
+          if (modeSel) setCompleteBtnEnabled((modeSel.value || '').trim());
+        });
+      }
+      if (possibleProductSel) {
+        possibleProductSel.addEventListener('change', function () {
+          updateTargetProductOptions(this.value);
+          if (modeSel) setCompleteBtnEnabled((modeSel.value || '').trim());
+        });
+      }
+      if (targetProductSel) {
+        targetProductSel.addEventListener('change', function () {
+          if (modeSel) setCompleteBtnEnabled((modeSel.value || '').trim());
+        });
+      }
+      if (productNameSel) {
+        productNameSel.addEventListener('change', function () {
+          if (modeSel) setCompleteBtnEnabled((modeSel.value || '').trim());
         });
       }
     })();
 
     function normalizeJumin(v) { return (v != null ? String(v) : '').replace(/\D/g, '').slice(0, 13); }
+
+    function filterByKey(rows, nameKey, juminKey) {
+      return (rows || []).filter(function (r) {
+        return (r['계약자명'] != null ? String(r['계약자명']) : '').trim() === nameKey &&
+               normalizeJumin(r['주민번호'] != null ? r['주민번호'] : '') === juminKey;
+      });
+    }
 
     function formatAmount(num) {
       var n = Math.floor(Number(String(num).replace(/,/g, '')));
@@ -797,6 +1521,28 @@
       return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
     function parseAmount(s) { return String(s || '').replace(/,/g, ''); }
+
+    function getDetailFormRow() {
+      var row = {};
+      var form = document.querySelector('.detail-form');
+      if (!form) return row;
+      form.querySelectorAll('input[data-field], select[data-field]').forEach(function (el) {
+        if (el.id === 'detail-mode' || el.id === 'detail-complete-btn') return;
+        var field = el.getAttribute('data-field');
+        if (!field) return;
+        var v = el.value != null ? String(el.value).trim() : '';
+        if (el.classList.contains('detail-amount')) v = parseAmount(v);
+        row[field] = v;
+      });
+      var juminFull = document.getElementById('jumin-full');
+      if (juminFull) {
+        var j = normalizeJumin(juminFull.value);
+        row['주민번호'] = j;
+      }
+      var disagreeChk = document.getElementById('detail-db-disagree');
+      row['문자전송'] = (disagreeChk && disagreeChk.checked) ? '비동의' : '동의';
+      return row;
+    }
 
     (function () {
       document.querySelectorAll('.detail-form .detail-amount').forEach(function (el) {
@@ -807,15 +1553,22 @@
           if (v !== this.value) this.value = v;
         });
       });
-      var toggleBtn = document.getElementById('db-agree-toggle');
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function () {
-          this.dataset.value = this.dataset.value === '동의' ? '부동의' : '동의';
-          this.textContent = this.dataset.value;
-        });
-      }
     })();
 
+    function toYYMMDD(val) {
+      if (val == null || val === '') return '';
+      var s = String(val).trim();
+      var digits = s.replace(/\D/g, '');
+      if (digits.length === 8) return digits.slice(2, 4) + '/' + digits.slice(4, 6) + '/' + digits.slice(6, 8);
+      if (digits.length === 6) return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4, 6);
+      if (typeof val === 'number' && val >= 1 && val < 3000000 && typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
+        try {
+          var d = XLSX.SSF.parse_date_code(val);
+          if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+        } catch (err) {}
+      }
+      return s;
+    }
     function clearDetailForm() {
       var form = document.querySelector('.detail-form');
       if (!form) return;
@@ -836,28 +1589,35 @@
       });
       var productType = document.getElementById('detail-product-type');
       if (productType) { productType.selectedIndex = 0; updateProductNameOptions(''); }
-      var toggleBtn = document.getElementById('db-agree-toggle');
-      if (toggleBtn) { toggleBtn.dataset.value = '동의'; toggleBtn.textContent = '동의'; }
+      var disagreeChk = document.getElementById('detail-db-disagree');
+      if (disagreeChk) disagreeChk.checked = false;
+      var poss = document.getElementById('detail-possible-product');
+      if (poss && typeof updateTargetProductOptions === 'function') updateTargetProductOptions(poss.value || '');
     }
 
     function fillDetailForm(merged) {
       if (!merged || typeof merged !== 'object') return;
       updateProductNameOptions(merged['상품종류'] != null ? String(merged['상품종류']) : '');
-      var fieldKeys = { '주민번호': '주민등록번호' };
+      var fieldKeys = { '주의사항': '참고사항' };
       var keys = Object.keys(merged);
       keys.forEach(function (key) {
         var val = merged[key];
-        if (val == null) val = '';
-        else if (typeof val === 'number' && !isNaN(val)) val = String(val);
-        else val = String(val);
         var fieldKey = fieldKeys[key] || key;
         var el = document.querySelector('.detail-form [data-field="' + fieldKey + '"]');
         if (!el) return;
+        if (fieldKey === '배정일자' || fieldKey === '종료일자' || fieldKey === '납입만기') {
+          var rawDate = (merged[fieldKey] != null ? merged[fieldKey] : merged[key]);
+          el.value = toYYMMDD(rawDate);
+          return;
+        }
+        if (val == null) val = '';
+        else if (typeof val === 'number' && !isNaN(val)) val = String(val);
+        else val = String(val);
         if (el.tagName === 'SELECT') {
           if (el.id === 'detail-product-type') {
             el.value = val;
             updateProductNameOptions(val);
-          } else if (el.id === 'detail-product-name') {
+          } else {
             var opt = [].find.call(el.options, function (o) { return o.value === val; });
             if (!opt && val) {
               var o = document.createElement('option');
@@ -866,23 +1626,32 @@
               el.appendChild(o);
             }
             el.value = val;
-          } else {
-            var opt = [].find.call(el.options, function (o) { return o.value === val; });
-            el.selectedIndex = opt ? opt.index : 0;
           }
         } else if (el.id === 'jumin-input') {
           document.getElementById('jumin-full').value = normalizeJumin(val);
           var raw = normalizeJumin(val);
-          el.value = raw.length <= 6 ? raw : raw.slice(0, 6) + '-' + raw[6] + (raw.length > 7 ? '******' : '');
+          el.value = raw.length <= 6 ? raw : raw.slice(0, 6) + '-' + raw.slice(6, 13);
         } else if (el.classList.contains('detail-amount')) {
           el.value = formatAmount(val);
         } else {
           el.value = val;
         }
       });
+      if (typeof updateTargetProductOptions === 'function') {
+        var v = merged['가능상품'];
+        updateTargetProductOptions(v != null ? String(v).trim() : '');
+      }
+      var form = document.querySelector('.detail-form');
+      if (form) {
+        var charSend = merged['문자전송'];
+        var disagreeChk = document.getElementById('detail-db-disagree');
+        if (disagreeChk) disagreeChk.checked = (charSend != null && String(charSend).trim() === '비동의');
+      }
     }
 
+    window._selectedInfoRowIndex = null;
     window._onInfoRowClick = function (rowIndex) {
+      window._selectedInfoRowIndex = rowIndex;
       var info = window._infoTableData;
       if (!info || !info.rows || !info.rows[rowIndex]) return;
       var headers = info.headers;
@@ -890,24 +1659,24 @@
       var infoRow = {};
       headers.forEach(function (h, i) { infoRow[h] = rowArr[i] != null ? rowArr[i] : ''; });
       var nameKey = (infoRow['계약자명'] != null ? String(infoRow['계약자명']) : '').trim();
-      var juminVal = infoRow['주민등록번호'] != null ? infoRow['주민등록번호'] : infoRow['주민번호'];
+      var juminVal = infoRow['주민번호'] != null ? infoRow['주민번호'] : '';
       var juminKey = normalizeJumin(juminVal);
       var insurance = window._insuranceData;
       var insuranceRows = [];
       var insuranceRow = null;
       if (insurance && insurance.rows && insurance.rows.length) {
-        insuranceRows = insurance.rows.filter(function (r) {
-          var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
-          var j = normalizeJumin(r['주민등록번호'] != null ? r['주민등록번호'] : r['주민번호']);
-          return n === nameKey && j === juminKey;
-        });
+        insuranceRows = filterByKey(insurance.rows, nameKey, juminKey);
         insuranceRow = insuranceRows[0] || null;
       }
       var merged = Object.assign({}, infoRow, insuranceRow || {});
       fillDetailForm(merged);
 
       var modeSel = document.getElementById('detail-mode');
-      if (modeSel) modeSel.disabled = false;
+      if (modeSel) {
+        modeSel.disabled = false;
+        modeSel.value = '조회';
+        modeSel.dispatchEvent(new Event('change'));
+      }
       var modOpt = document.getElementById('detail-mode-modify');
       var delOpt = document.getElementById('detail-mode-delete');
       var outOpt = document.getElementById('detail-mode-output');
@@ -919,16 +1688,251 @@
         renderInsuranceTable(insurance.headers, insuranceRows);
       } else {
         var insEl = document.getElementById('insurance-table');
-        if (insEl) insEl.innerHTML = '<div class="placeholder">kb023_insurance.xlsx를 로드한 후 선택하세요.</div>';
+        if (insEl) insEl.innerHTML = '<div class="placeholder">' + DETAIL_PLACEHOLDER_SELECT_ROW + '</div>';
       }
 
-      if (typeof window.updatePrebargainingChat === 'function') window.updatePrebargainingChat();
+      var accident = window._accidentData;
+      if (accident && accident.rows && accident.rows.length) {
+        var accidentRows = filterByKey(accident.rows, nameKey, juminKey);
+        accidentRows.sort(function (a, b) {
+          var va = a['기록일자'] != null ? a['기록일자'] : '';
+          var vb = b['기록일자'] != null ? b['기록일자'] : '';
+          if (va !== vb) return va > vb ? 1 : -1;
+          return 0;
+        });
+        window._accidentMode = (document.getElementById('accident-mode') && document.getElementById('accident-mode').value) || '입력';
+        window._accidentEditRowIndex = null;
+        window._accidentDeleteSelectedRowIndex = null;
+        renderAccidentTable(accident.headers, accidentRows);
+      } else {
+        var accEl = document.getElementById('accident-table');
+        if (accEl) accEl.innerHTML = '<div class="placeholder">' + DETAIL_PLACEHOLDER_SELECT_ROW + '</div>';
+        window._currentAccidentHeaders = null;
+        window._currentAccidentRows = null;
+      }
+      var accidentModeSel = document.getElementById('accident-mode');
+      var accidentCompleteBtn = document.getElementById('accident-complete-btn');
+      if (accidentModeSel) { accidentModeSel.disabled = false; accidentModeSel.value = window._accidentMode || '입력'; }
+      if (accidentCompleteBtn) accidentCompleteBtn.disabled = false;
+
+      var counsel = window._counselData;
+      var counselRows = [];
+      if (counsel && counsel.rows && counsel.rows.length) {
+        counselRows = filterByKey(counsel.rows, nameKey, juminKey);
+      }
+      if (typeof window.updateCounselPastChat === 'function') window.updateCounselPastChat(counselRows);
+      if (!counsel || !counsel.rows || counsel.rows.length === 0) {
+        var pastEl = document.getElementById('counsel-past-messages');
+        if (pastEl) pastEl.innerHTML = '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
+      }
+      if (typeof window.updateCounselTodayChat === 'function') window.updateCounselTodayChat();
+    };
+
+    var CONTRACT_FIELD_KEYS = ['상품종류', '상품명', '증권번호', '납입만기', '주요담보', '월보험료', '납입방법', '납입보험료', '총보험료', '해지환급금', '대출금', '참고사항'];
+    window._onInsuranceRowClick = function (rowIndex) {
+      var rows = window._currentInsuranceRows;
+      if (!rows || !rows[rowIndex]) return;
+      var row = rows[rowIndex];
+      var obj = {};
+      CONTRACT_FIELD_KEYS.forEach(function (k) {
+        var v = (k === '참고사항') ? (row['참고사항'] != null ? row['참고사항'] : row['주의사항']) : row[k];
+        if (v !== undefined && v !== null && v !== '') obj[k] = v;
+      });
+      fillDetailForm(obj);
     };
 
     (function () {
-      var assignCols = ['seq.', '배정일자', '문자전송', 'DB종류', '계약자명', '주민번호', '연락처', '증권번호', '납입만기', '보험상품', '보험명'];
-      var assignColWidths = ['3%', '5%', '5%', '5%', '5%', '8%', '8%', '8%', '8%', '10%', '35%'];
-      var assignColAlign = ['center', 'center', 'center', 'center', 'left', 'left', 'left', 'left', 'left', 'left', 'left'];
+      var left = document.getElementById('left-container');
+      if (left) {
+        left.addEventListener('click', function (e) {
+          var tr = e.target && e.target.closest('#insurance-table tbody tr');
+          if (tr && tr.dataset.rowIndex !== undefined) window._onInsuranceRowClick(parseInt(tr.dataset.rowIndex, 10));
+        });
+      }
+    })();
+
+    (function () {
+      var dateFields = { '배정일자': 1, '종료일자': 1, '납입만기': 1 };
+      document.addEventListener('blur', function (e) {
+        var inp = e.target;
+        if (!inp || inp.tagName !== 'INPUT' || !inp.closest || !inp.closest('.detail-form')) return;
+        var field = inp.getAttribute('data-field');
+        if (!dateFields[field]) return;
+        var raw = (inp.value || '').replace(/\D/g, '');
+        if (raw.length === 6) {
+          inp.value = raw.slice(0, 2) + '/' + raw.slice(2, 4) + '/' + raw.slice(4, 6);
+        } else if (raw.length === 8) {
+          inp.value = raw.slice(2, 4) + '/' + raw.slice(4, 6) + '/' + raw.slice(6, 8);
+        }
+      }, true);
+    })();
+
+    (function () {
+      var right = document.getElementById('right-container');
+      var accidentModeSel = document.getElementById('accident-mode');
+      var accidentCompleteBtn = document.getElementById('accident-complete-btn');
+      if (accidentModeSel) {
+        accidentModeSel.addEventListener('change', function () {
+          window._accidentMode = this.value;
+          window._accidentEditRowIndex = null;
+          window._accidentDeleteSelectedRowIndex = null;
+          if (window._currentAccidentHeaders && window._currentAccidentRows) {
+            renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+          }
+        });
+      }
+      if (right) {
+        right.addEventListener('click', function (e) {
+          var tr = e.target && e.target.closest('#accident-table tbody tr');
+          if (!tr || tr.classList.contains('accident-input-row') || tr.dataset.rowIndex === undefined) return;
+          var mode = window._accidentMode;
+          var idx = parseInt(tr.dataset.rowIndex, 10);
+          if (mode === '수정') {
+            if (e.target.closest('input.accident-inline-input')) return;
+            window._accidentEditRowIndex = idx;
+            if (window._currentAccidentHeaders && window._currentAccidentRows) {
+              renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+            }
+          } else if (mode === '삭제') {
+            window._accidentDeleteSelectedRowIndex = idx;
+            if (window._currentAccidentHeaders && window._currentAccidentRows) {
+              renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+            }
+          }
+        });
+        right.addEventListener('blur', function (e) {
+          var inp = e.target;
+          if (!inp || inp.tagName !== 'INPUT' || !inp.classList.contains('accident-inline-input') || inp.getAttribute('data-key') !== '사고일자') return;
+          var raw = (inp.value || '').replace(/\D/g, '');
+          if (raw.length === 6) {
+            inp.value = raw.slice(0, 2) + '/' + raw.slice(2, 4) + '/' + raw.slice(4, 6);
+          } else if (raw.length === 8) {
+            inp.value = raw.slice(2, 4) + '/' + raw.slice(4, 6) + '/' + raw.slice(6, 8);
+          }
+        }, true);
+      }
+      if (accidentCompleteBtn) {
+        accidentCompleteBtn.addEventListener('click', function () {
+          var mode = window._accidentMode;
+          if (mode === '입력') {
+            var inputRow = document.querySelector('#accident-table .accident-input-row');
+            if (!inputRow || !window._currentAccidentHeaders) return;
+            var inputValues = {};
+            inputRow.querySelectorAll('input.accident-inline-input').forEach(function (inp) {
+              var key = inp.getAttribute('data-key');
+              if (key) inputValues[key] = (inp.value || '').trim();
+            });
+            var sagoDate = inputValues['사고일자'] || '';
+            var sagoContent = inputValues['사고내용'] || '';
+            if (!sagoDate && !sagoContent) return;
+            var nameEl = document.querySelector('.detail-form [data-field="계약자명"]');
+            var juminFullEl = document.getElementById('jumin-full');
+            var contractName = (nameEl && nameEl.value != null ? String(nameEl.value) : '').trim();
+            var juminVal = (juminFullEl && juminFullEl.value != null ? String(juminFullEl.value) : '').replace(/\D/g, '').slice(0, 13);
+            var row = {};
+            var sagoParts = (sagoDate || '').match(/^(\d{2})\/(\d{1,2})\/(\d{1,2})$/);
+            var yyyymmdd = null;
+            if (sagoParts) {
+              var yy = parseInt(sagoParts[1], 10);
+              var mm = parseInt(sagoParts[2], 10);
+              var dd = parseInt(sagoParts[3], 10);
+              if (yy >= 0 && yy <= 99 && mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+                yyyymmdd = (2000 + yy) * 10000 + mm * 100 + dd;
+              }
+            }
+            window._currentAccidentHeaders.forEach(function (h) {
+              if (h === '계약자명') row[h] = contractName;
+              else if (h === '주민번호') row[h] = juminVal;
+              else if (h === '기록일자' && yyyymmdd != null) row[h] = yyyymmdd;
+              else row[h] = inputValues[h] != null ? inputValues[h] : '';
+            });
+            var headers = window._accidentData && window._accidentData.headers ? window._accidentData.headers : window._currentAccidentHeaders;
+            fetch('/api/accident', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ headers: headers, rowsToAppend: [row] })
+            })
+              .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+              .then(function (result) {
+                if (result.ok && result.data && result.data.appended > 0) {
+                  if (window._accidentData && window._accidentData.rows) window._accidentData.rows.push(row);
+                  if (window._currentAccidentRows) window._currentAccidentRows.push(row);
+                  if (window._currentAccidentHeaders && window._currentAccidentRows) {
+                    renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+                  }
+                } else {
+                  alert('저장 실패: ' + (result.data && result.data.error ? result.data.error : '서버 오류'));
+                }
+              })
+              .catch(function () {
+                alert('저장 실패: 서버에 연결할 수 없습니다. Python 서버(app.py)를 실행했는지 확인하세요.');
+              });
+          } else if (mode === '수정' && window._accidentEditRowIndex != null && window._currentAccidentRows) {
+            var tr = document.querySelector('#accident-table tbody tr[data-row-index="' + window._accidentEditRowIndex + '"]');
+            if (tr) {
+              tr.querySelectorAll('input.accident-inline-input').forEach(function (inp) {
+                var key = inp.getAttribute('data-key');
+                if (key && window._currentAccidentRows[window._accidentEditRowIndex]) {
+                  window._currentAccidentRows[window._accidentEditRowIndex][key] = inp.value;
+                }
+              });
+            }
+            window._accidentEditRowIndex = null;
+            if (window._currentAccidentHeaders && window._currentAccidentRows) {
+              renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+            }
+          } else if (mode === '삭제') {
+            if (window._accidentDeleteSelectedRowIndex != null && window._currentAccidentRows) {
+              var selRow = window._currentAccidentRows[window._accidentDeleteSelectedRowIndex];
+              var fileRowIndex = selRow && selRow._fileRowIndex != null ? selRow._fileRowIndex : null;
+              window._accidentDeleteSelectedRowIndex = null;
+              if (fileRowIndex == null) {
+                if (window._currentAccidentHeaders && window._currentAccidentRows) {
+                  renderAccidentTable(window._currentAccidentHeaders, window._currentAccidentRows);
+                }
+                return;
+              }
+              if (!window.confirm('해당 행을 kb023_accident.xlsx에서 삭제합니다.')) return;
+              fetch('/api/accident', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'deleteRow', rowIndex: fileRowIndex })
+              })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                  if (data && data.ok) {
+                    var nameKey = (document.querySelector('.detail-form [data-field="계약자명"]') && document.querySelector('.detail-form [data-field="계약자명"]').value) || '';
+                    var juminKey = normalizeJumin(document.getElementById('jumin-full') && document.getElementById('jumin-full').value);
+                    if (typeof tryAutoLoadAccident === 'function') {
+                      tryAutoLoadAccident().then(function () {
+                        var accident = window._accidentData;
+                        if (accident && accident.rows) {
+                          var filtered = accident.rows.filter(function (r) {
+                            var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
+                            var j = normalizeJumin(r['주민번호'] != null ? r['주민번호'] : '');
+                            return n === nameKey && j === juminKey;
+                          });
+                          if (window._currentAccidentHeaders) renderAccidentTable(window._currentAccidentHeaders, filtered);
+                        }
+                      });
+                    }
+                  } else {
+                    alert('삭제 실패: ' + (data && data.error ? data.error : '서버 오류'));
+                  }
+                })
+                .catch(function () {
+                  alert('삭제 실패: 서버에 연결할 수 없습니다. app.py를 실행했는지 확인하세요.');
+                });
+            }
+          }
+        });
+      }
+    })();
+
+    (function () {
+      var assignCols = ['seq.', '배정일자', '문자전송', 'DB종류', '계약자명', '주민번호', '연락처', '증권번호', '납입만기'];
+      var assignColWidths = ['2.5%', '6%', '5%', '5%', '8%', '10%', '8%', '7%', '6%'];
+      var assignColAlign = ['center', 'center', 'center', 'center', 'left', 'left', 'left', 'left', 'center'];
       var savedAssignPos = null;
       var MOVE_STEP = 10;
       function getAssignBox() { return document.querySelector('#assign-modal .assign-box'); }
@@ -988,7 +1992,7 @@
         if (v == null || v === '') return '';
         if (typeof v === 'number' && v >= 1 && v < 3000000) {
           var d = XLSX.SSF.parse_date_code(v);
-          if (d && d.y >= 1900) return d.y + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
+          if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
         }
         return String(v).replace(/</g, '&lt;');
       }
@@ -998,7 +2002,11 @@
           var d = XLSX.SSF.parse_date_code(v);
           if (d && d.y >= 1900) return String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0') + '/' + String(d.d).padStart(2, '0');
         }
-        return String(v).replace(/</g, '&lt;');
+        var s = String(v).trim();
+        var digits = s.replace(/\D/g, '');
+        if (digits.length === 8) return digits.slice(2, 4) + '/' + digits.slice(4, 6) + '/' + digits.slice(6, 8);
+        if (digits.length === 6) return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4, 6);
+        return s.replace(/</g, '&lt;');
       }
       function getAssignRows() {
         var info = window._infoTableData;
@@ -1009,32 +2017,23 @@
           var infoRow = {};
           info.headers.forEach(function (h, i) { infoRow[h] = rowArr[i] != null ? rowArr[i] : ''; });
           var nameKey = (infoRow['계약자명'] != null ? String(infoRow['계약자명']) : '').trim();
-          var juminVal = infoRow['주민등록번호'] != null ? infoRow['주민등록번호'] : infoRow['주민번호'];
+          var juminVal = infoRow['주민번호'] != null ? infoRow['주민번호'] : '';
           var juminKey = normalizeJumin(juminVal);
           var insRow = null;
           if (insurance && insurance.rows && insurance.rows.length) {
-            var found = insurance.rows.filter(function (r) {
-              var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
-              var j = normalizeJumin(r['주민등록번호'] != null ? r['주민등록번호'] : r['주민번호']);
-              return n === nameKey && j === juminKey;
-            });
-            insRow = found[0] || null;
+            insRow = filterByKey(insurance.rows, nameKey, juminKey)[0] || null;
           }
-          var assignDate = infoRow['배정일자'] != null && infoRow['배정일자'] !== '' ? infoRow['배정일자'] : (infoRow['배정일'] != null ? infoRow['배정일'] : '');
-          var product = (insRow && (insRow['보험상품'] != null ? insRow['보험상품'] : insRow['상품명'] != null ? insRow['상품명'] : '')) || '';
-          var productName = (insRow && (insRow['보험명'] != null ? insRow['보험명'] : insRow['상품명'] != null ? insRow['상품명'] : '')) || '';
+          var assignDate = infoRow['배정일자'] != null && infoRow['배정일자'] !== '' ? infoRow['배정일자'] : '';
           list.push({
             _infoRowIndex: rowIndex,
             '배정일자': assignDate,
             '문자전송': infoRow['문자전송'] != null ? infoRow['문자전송'] : '',
             'DB종류': infoRow['DB종류'] != null ? infoRow['DB종류'] : '',
             '계약자명': infoRow['계약자명'] != null ? infoRow['계약자명'] : '',
-            '주민번호': infoRow['주민등록번호'] != null ? infoRow['주민등록번호'] : (infoRow['주민번호'] != null ? infoRow['주민번호'] : ''),
+            '주민번호': infoRow['주민번호'] != null ? infoRow['주민번호'] : '',
             '연락처': infoRow['연락처'] != null ? infoRow['연락처'] : '',
             '증권번호': (insRow && insRow['증권번호'] != null) ? insRow['증권번호'] : '',
-            '납입만기': (insRow && insRow['납입만기'] != null) ? insRow['납입만기'] : '',
-            '보험상품': product,
-            '보험명': productName
+            '납입만기': (insRow && insRow['납입만기'] != null) ? insRow['납입만기'] : ''
           });
         });
         list.sort(function (a, b) {
@@ -1055,26 +2054,26 @@
           inner.innerHTML = 'information 데이터가 없습니다. kb023_information.xlsx를 먼저 로드하세요.';
         } else {
           inner.className = '';
-          var html = '<table><colgroup>';
+          var html = '<table class="assign-print-table"><colgroup>';
           assignColWidths.forEach(function (w) { html += '<col style="width:' + w + '">'; });
           html += '</colgroup><thead><tr>';
           assignCols.forEach(function (h, i) {
-            var cls = (h === '보험명') ? ' col-ellipsis' : '';
-            cls += assignColAlign[i] === 'center' ? ' col-center' : ' col-left';
-            html += '<th class="' + cls.trim() + '">' + String(h).replace(/</g, '&lt;') + '</th>';
+            var thCls = assignColAlign[i] === 'center' ? ' col-center' : ' col-left';
+            html += '<th class="' + thCls.trim() + '">' + String(h).replace(/</g, '&lt;') + '</th>';
           });
           html += '</tr></thead><tbody>';
           rows.forEach(function (row, idx) {
+            function fmtVal(k, r) {
+              if (k === 'seq.') return String(idx + 1);
+              if (k === '배정일자') return formatDateValYY(r[k]);
+              if (k === '납입만기' && r[k] != null && typeof r[k] === 'number' && r[k] >= 1 && r[k] < 3000000) return formatDateValYY(r[k]);
+              return r[k] != null ? String(r[k]).replace(/</g, '&lt;') : '';
+            }
             html += '<tr data-info-row-index="' + row._infoRowIndex + '">';
             assignCols.forEach(function (key, i) {
-              var val = '';
-              if (key === 'seq.') val = String(idx + 1);
-              else if (key === '배정일자') val = formatDateValYY(row[key]);
-              else if (key === '납입만기' && row[key] != null && typeof row[key] === 'number' && row[key] >= 1 && row[key] < 3000000) val = formatDateValYY(row[key]);
-              else val = row[key] != null ? String(row[key]).replace(/</g, '&lt;') : '';
-              var cls = (key === '보험명') ? ' col-ellipsis' : '';
-              cls += assignColAlign[i] === 'center' ? ' col-center' : ' col-left';
-              html += '<td class="' + cls.trim() + '">' + val + '</td>';
+              var val = fmtVal(key, row);
+              var tdCls = assignColAlign[i] === 'center' ? ' col-center' : ' col-left';
+              html += '<td class="' + tdCls.trim() + '">' + val + '</td>';
             });
             html += '</tr>';
           });
@@ -1099,21 +2098,6 @@
           }
         });
       }
-      function doAssignPrint() {
-        var styleEl = document.createElement('style');
-        styleEl.id = 'assign-print-page-style';
-        styleEl.textContent = '@media print { @page { size: A4 landscape; margin: 5mm; } }';
-        document.head.appendChild(styleEl);
-        document.body.classList.add('print-assign');
-        function cleanup() {
-          document.body.classList.remove('print-assign');
-          var el = document.getElementById('assign-print-page-style');
-          if (el) el.remove();
-          window.removeEventListener('afterprint', cleanup);
-        }
-        window.addEventListener('afterprint', cleanup);
-        window.print();
-      }
       function closeAssignModal() {
         document.getElementById('assign-modal').classList.remove('open');
         document.removeEventListener('keydown', onAssignKeydown);
@@ -1133,8 +2117,14 @@
         else if (e.key === 'ArrowDown') { e.preventDefault(); applyAssignBoxPosition(left, top + MOVE_STEP); }
       }
       document.getElementById('btn-assign-data').addEventListener('click', openAssignModal);
-      var assignPrintBtn = document.getElementById('assign-print-btn');
-      if (assignPrintBtn) assignPrintBtn.addEventListener('click', doAssignPrint);
+      var assignModalEl = document.getElementById('assign-modal');
+      if (assignModalEl) {
+        assignModalEl.addEventListener('click', function (e) {
+          if (!document.getElementById('assign-modal').classList.contains('open')) return;
+          if (e.target.closest('.assign-box')) return;
+          closeAssignModal();
+        });
+      }
     })();
 
     (function () {
@@ -1149,73 +2139,41 @@
       function onHelpKeydown(e) { if (e.key === 'Escape') closeHelpModal(); }
       if (btnHelp) btnHelp.addEventListener('click', openHelpModal);
       if (helpModal) helpModal.addEventListener('click', function (e) { if (e.target === helpModal) closeHelpModal(); });
+      var btnWorkEnd = document.getElementById('btn-work-end');
+      if (btnWorkEnd) btnWorkEnd.addEventListener('click', function () {
+        if (window.confirm('작업을 종료하시겠습니까?')) window.close();
+      });
     })();
 
     (function () {
-      var chatMessages = document.getElementById('prebargaining-chat-messages');
-      var chatInput = document.getElementById('prebargaining-chat-input');
-      var sendTypeSelect = document.getElementById('prebargaining-send-type');
-      var sendBtn = document.getElementById('prebargaining-send-btn');
+      var chatMessages = document.getElementById('counsel-today-messages');
+      var chatInput = document.getElementById('counsel-chat-input');
+      var sendTypeSelect = document.getElementById('counsel-send-type');
+      var sendBtn = document.getElementById('counsel-send-btn');
       var qaRows = [];
       var currentNameKey = '';
       var currentJuminKey = '';
 
-      function getFilteredPrebargainingRows(nameKey, juminKey) {
-        var pre = window._prebargainingData;
-        if (!pre || !pre.rows || pre.rows.length === 0) return [];
-        var rows = pre.rows.filter(function (r) {
-          var n = (r['계약자명'] != null ? String(r['계약자명']) : '').trim();
-          var j = normalizeJumin(r['주민등록번호'] != null ? r['주민등록번호'] : r['주민번호']);
-          return n === nameKey && j === juminKey;
-        });
-        rows.sort(function (a, b) {
-          var va = a['기록일자'] != null ? a['기록일자'] : '';
-          var vb = b['기록일자'] != null ? b['기록일자'] : '';
-          if (va !== vb) return va > vb ? 1 : -1;
-          return 0;
-        });
-        return rows;
-      }
-
-      function qaStorageKey() { return 'kb023_qa_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || ''); }
+      function counselTodayStorageKey() { return 'kb023_counsel_today_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || ''); }
       function loadQaFromStorage() {
         try {
-          var raw = localStorage.getItem(qaStorageKey());
+          var raw = localStorage.getItem(counselTodayStorageKey());
           qaRows = raw ? JSON.parse(raw) : [];
         } catch (e) { qaRows = []; }
       }
       function saveQaToStorage() {
-        try { localStorage.setItem(qaStorageKey(), JSON.stringify(qaRows)); } catch (e) {}
+        try { localStorage.setItem(counselTodayStorageKey(), JSON.stringify(qaRows)); } catch (e) {}
       }
 
       function buildChatMessageList() {
         var list = [];
-        var xlsxRows = getFilteredPrebargainingRows(currentNameKey, currentJuminKey);
-        xlsxRows.forEach(function (row) {
-          var qaVal = (row['문/답'] != null ? String(row['문/답']) : '').trim();
-          var detail = (row['세부내용'] != null ? String(row['세부내용']) : '').trim();
-          if (!detail) return;
-          var isDap = qaVal === '답' || qaVal === 'A' || String(qaVal).toUpperCase().indexOf('답') !== -1;
-          list.push({ type: isDap ? '답' : '문', text: detail, date: row['기록일자'], time: row['기록시간'], fromXlsx: true });
-        });
         qaRows.forEach(function (row, idx) {
           var mun = (row.문 != null ? String(row.문) : '').trim();
           var dap = (row.답 != null ? String(row.답) : '').trim();
-          if (mun) list.push({ type: '문', text: mun, qaIndex: idx, fromStorage: true, timeStamp: row.문SentAt });
-          if (dap) list.push({ type: '답', text: dap, qaIndex: idx, fromStorage: true, timeStamp: row.답SentAt });
+          if (mun) list.push({ type: '문', text: mun, qaIndex: idx, timeStamp: row.문SentAt });
+          if (dap) list.push({ type: '답', text: dap, qaIndex: idx, timeStamp: row.답SentAt });
         });
-        // 과거 → 최신 순 (위: 과거, 아래: 최신)
-        list.sort(function (a, b) {
-          if (a.fromXlsx && b.fromXlsx) {
-            var da = a.date != null ? a.date : 0, db = b.date != null ? b.date : 0;
-            if (da !== db) return da > db ? 1 : -1;
-            var ta = a.time != null ? a.time : 0, tb = b.time != null ? b.time : 0;
-            return ta > tb ? 1 : ta < tb ? -1 : 0;
-          }
-          if (a.fromXlsx && !b.fromXlsx) return -1;
-          if (!a.fromXlsx && b.fromXlsx) return 1;
-          return (a.qaIndex || 0) - (b.qaIndex || 0);
-        });
+        list.sort(function (a, b) { return (a.qaIndex || 0) - (b.qaIndex || 0); });
         return list;
       }
 
@@ -1224,67 +2182,41 @@
         var mm = (m != null && !isNaN(m)) ? Math.floor(Number(m)) % 60 : 0;
         return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
       }
-      var WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
-      function formatDateLabel(dateNum, timeNum) {
-        if (dateNum == null && timeNum == null) return '';
-        if (dateNum != null && typeof dateNum === 'number' && dateNum >= 1 && dateNum < 3000000) {
-          var d = XLSX.SSF.parse_date_code(dateNum);
-          if (d && d.y >= 1900) {
-            var yy = String(d.y).slice(-2);
-            var mm = String(d.m).padStart(2, '0');
-            var dd = String(d.d).padStart(2, '0');
-            var dateObj = new Date(d.y, d.m - 1, d.d);
-            var 요일 = WEEKDAY_KO[dateObj.getDay()];
-            return yy + '/' + mm + '/' + dd + ' (' + 요일 + ')';
-          }
-        }
-        return '';
-      }
-      function formatTimeOnly(dateNum, timeNum) {
-        if (timeNum != null && typeof timeNum === 'number') {
-          var t = timeNum - Math.floor(timeNum);
-          if (t > 0 && t < 1) {
-            var h = Math.floor(t * 24), m = Math.floor((t * 24 - h) * 60);
-            return toHHMM(h, m);
-          }
-        }
-        if (dateNum != null && typeof dateNum === 'number' && dateNum >= 1 && dateNum < 3000000) {
-          var d = XLSX.SSF.parse_date_code(dateNum);
-          if (d && d.y >= 1900) return toHHMM(0, 0);
-        }
-        return '';
-      }
       function formatTimeFromStamp(ts) {
         if (ts == null || typeof ts !== 'number') return '';
         var d = new Date(ts);
         return toHHMM(d.getHours(), d.getMinutes());
+      }
+      function formatDateFromStamp(ts) {
+        if (ts == null || typeof ts !== 'number') return '';
+        var d = new Date(ts);
+        var yy = String(d.getFullYear()).slice(-2);
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var dd = String(d.getDate()).padStart(2, '0');
+        var WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+        return yy + '/' + mm + '/' + dd + ' (' + WEEKDAY_KO[d.getDay()] + ')';
       }
 
       function renderChat() {
         if (!chatMessages) return;
         var list = buildChatMessageList();
         var html = '';
-        var lastDate = '';
         list.forEach(function (msg) {
-          var dateLabel = msg.fromXlsx ? formatDateLabel(msg.date, msg.time) : '';
-          if (dateLabel && dateLabel !== lastDate) {
-            lastDate = dateLabel;
-            html += '<div class="chat-msg-date" style="text-align:center; margin:0.5rem 0;">' + dateLabel.replace(/</g, '&lt;') + '</div>';
-          }
-          var timeStr = msg.fromXlsx ? formatTimeOnly(msg.date, msg.time) : (msg.timeStamp ? formatTimeFromStamp(msg.timeStamp) : '');
+          var timeStr = msg.timeStamp ? formatTimeFromStamp(msg.timeStamp) : '';
+          var dateStr = msg.timeStamp ? formatDateFromStamp(msg.timeStamp) : '';
+          var dateTimeStr = (dateStr ? dateStr + ' ' : '') + (timeStr || '');
           var esc = (msg.text || '').replace(/</g, '&lt;').replace(/\n/g, '<br>');
           var isDap = msg.type === '답';
           var rowCls = isDap ? 'chat-msg-row msg-row-dap' : 'chat-msg-row msg-row-mun';
           var bubbleCls = isDap ? 'chat-msg msg-dap' : 'chat-msg msg-mun';
-          var fromStorage = msg.fromStorage ? '1' : '0';
           var qaIdx = msg.qaIndex != null ? String(msg.qaIndex) : '';
           var msgType = (msg.type || '').replace(/"/g, '&quot;');
-          html += '<div class="' + rowCls + '" data-from-storage="' + fromStorage + '" data-qa-index="' + qaIdx + '" data-msg-type="' + msgType + '">';
+          html += '<div class="' + rowCls + '" data-from-storage="1" data-qa-index="' + qaIdx + '" data-msg-type="' + msgType + '">';
           html += '<div class="' + bubbleCls + '">' + esc + '</div>';
-          html += '<span class="chat-msg-time">' + (timeStr || '').replace(/</g, '&lt;') + '</span>';
+          html += '<span class="chat-msg-time">' + (dateTimeStr || '').replace(/</g, '&lt;') + '</span>';
           html += '</div>';
         });
-        if (!html) html = '<div class="placeholder" style="margin:1rem;">선택한 계약자의 문답이 없습니다. information에서 행을 선택한 뒤 하단에서 문/답을 입력 후 전송하세요.</div>';
+        if (!html) html = '<div class="counsel-empty-text">오늘 상담 내용이 없습니다. 문/답 선택 후 입력하고 전송하세요.</div>';
         chatMessages.innerHTML = html;
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
@@ -1293,21 +2225,12 @@
         var row = e.target.closest('.chat-msg-row');
         if (!row) return;
         if (!window.confirm('삭제 할까요?')) return;
-        var fromStorage = row.dataset.fromStorage === '1';
         var qaIndex = parseInt(row.dataset.qaIndex, 10);
         var msgType = row.dataset.msgType;
-        if (!fromStorage || isNaN(qaIndex) || !qaRows[qaIndex]) {
-          alert('불러온 기록은 삭제할 수 없습니다.');
-          return;
-        }
+        if (isNaN(qaIndex) || !qaRows[qaIndex]) return;
         var r = qaRows[qaIndex];
-        if (msgType === '문') {
-          r.문 = '';
-          r.문SentAt = null;
-        } else if (msgType === '답') {
-          r.답 = '';
-          r.답SentAt = null;
-        }
+        if (msgType === '문') { r.문 = ''; r.문SentAt = null; }
+        else if (msgType === '답') { r.답 = ''; r.답SentAt = null; }
         var mun = (r.문 != null ? String(r.문) : '').trim();
         var dap = (r.답 != null ? String(r.답) : '').trim();
         if (!mun && !dap) qaRows.splice(qaIndex, 1);
@@ -1315,77 +2238,27 @@
         renderChat();
       }
 
-      function downloadPrebargainingXlsx() {
-        var pre = window._prebargainingData;
-        var headers = (pre && pre.headers && pre.headers.length) ? pre.headers : ['계약자명', '주민등록번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'];
-        var juminFullEl = document.getElementById('jumin-full');
-        var juminForSave = (juminFullEl && juminFullEl.value != null) ? String(juminFullEl.value) : currentJuminKey;
-        var now = new Date();
-        var todayNum = (now.getFullYear() * 10000) + ((now.getMonth() + 1) * 100) + now.getDate();
-        var timeNum = now.getHours() / 24 + now.getMinutes() / 1440 + now.getSeconds() / 86400;
-        var rows = [];
-        if (pre && pre.rows && pre.rows.length) {
-          rows = pre.rows.map(function (r) {
-            var out = {};
-            headers.forEach(function (h) { out[h] = r[h] != null ? r[h] : ''; });
-            return out;
-          });
-        }
-        qaRows.forEach(function (row) {
-          var mun = (row.문 != null ? String(row.문) : '').trim();
-          var dap = (row.답 != null ? String(row.답) : '').trim();
-          if (mun) {
-            var o = {}; headers.forEach(function (h) { o[h] = ''; });
-            var sentAt = row.문SentAt != null && typeof row.문SentAt === 'number' ? row.문SentAt : null;
-            var d = sentAt ? new Date(sentAt) : now;
-            var dayNum = sentAt ? (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) : todayNum;
-            var tmNum = sentAt ? (d.getHours() / 24 + d.getMinutes() / 1440 + d.getSeconds() / 86400) : timeNum;
-            o['계약자명'] = currentNameKey; o['주민등록번호'] = juminForSave; o['기록일자'] = dayNum; o['기록시간'] = tmNum; o['문/답'] = '문'; o['세부내용'] = mun;
-            rows.push(o);
-          }
-          if (dap) {
-            var o2 = {}; headers.forEach(function (h) { o2[h] = ''; });
-            var sentAt2 = row.답SentAt != null && typeof row.답SentAt === 'number' ? row.답SentAt : null;
-            var d2 = sentAt2 ? new Date(sentAt2) : now;
-            var dayNum2 = sentAt2 ? (d2.getFullYear() * 10000 + (d2.getMonth() + 1) * 100 + d2.getDate()) : todayNum;
-            var tmNum2 = sentAt2 ? (d2.getHours() / 24 + d2.getMinutes() / 1440 + d2.getSeconds() / 86400) : timeNum;
-            o2['계약자명'] = currentNameKey; o2['주민등록번호'] = juminForSave; o2['기록일자'] = dayNum2; o2['기록시간'] = tmNum2; o2['문/답'] = '답'; o2['세부내용'] = dap;
-            rows.push(o2);
-          }
-        });
-        var ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{}], { header: headers });
-        var wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'prebargaining');
-        XLSX.writeFile(wb, 'kb023_prebargaining.xlsx');
-      }
-
-      function buildPrebargainingRow(계약자명, 주민등록번호, 문답, 세부내용, sentAt) {
+      var COUNSEL_HEADERS = ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용'];
+      function buildCounselRow(계약자명, 주민번호, 문답, 세부내용, sentAt) {
         var d = sentAt ? new Date(sentAt) : new Date();
         var dayNum = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
         var tmNum = d.getHours() / 24 + d.getMinutes() / 1440 + d.getSeconds() / 86400;
-        var pre = window._prebargainingData;
-        var headers = (pre && pre.headers && pre.headers.length) ? pre.headers : ['계약자명', '주민등록번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'];
         var o = {};
-        headers.forEach(function (h) { o[h] = ''; });
-        o['계약자명'] = 계약자명; o['주민등록번호'] = 주민등록번호; o['기록일자'] = dayNum; o['기록시간'] = tmNum; o['문/답'] = 문답; o['세부내용'] = 세부내용;
+        COUNSEL_HEADERS.forEach(function (h) { o[h] = ''; });
+        o['계약자명'] = 계약자명; o['주민번호'] = 주민번호; o['기록일자'] = dayNum; o['기록시간'] = tmNum; o['문/답'] = 문답; o['세부내용'] = 세부내용;
         return o;
       }
-      function savePrebargainingToServer(rowsToAppend, onDone) {
-        var pre = window._prebargainingData;
-        var headers = (pre && pre.headers && pre.headers.length) ? pre.headers : ['계약자명', '주민등록번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'];
-        fetch('/api/prebargaining', {
+      function saveCounselToServer(rowsToAppend, onDone) {
+        fetch('/api/counsel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ headers: headers, rowsToAppend: rowsToAppend })
+          body: JSON.stringify({ headers: COUNSEL_HEADERS, rowsToAppend: rowsToAppend })
         }).then(function (r) { return r.json(); })
           .then(function (res) {
-            if (res && res.ok) {
-              if (typeof onDone === 'function') onDone();
-            } else {
-              alert('저장 실패: ' + (res && res.error ? res.error : '서버 오류'));
-            }
+            if (res && res.ok) { if (typeof onDone === 'function') onDone(); }
+            else { alert('저장 실패: ' + (res && res.error ? res.error : '서버 오류')); }
           })
-          .catch(function (err) {
+          .catch(function () {
             alert('저장 실패: 서버에 연결할 수 없습니다. Python 서버(app.py)를 실행했는지 확인하세요.');
             if (typeof onDone === 'function') onDone();
           });
@@ -1401,9 +2274,11 @@
         else qaRows.push({ 문: '', 답: text, 문SentAt: null, 답SentAt: now });
         saveQaToStorage();
         if (chatInput) chatInput.value = '';
+        if (type === '문' && sendTypeSelect) sendTypeSelect.value = '답';
+        if (type === '답' && sendTypeSelect) sendTypeSelect.value = '문';
         renderChat();
-        var rowToAppend = buildPrebargainingRow(currentNameKey, juminForSave, type, text, now);
-        savePrebargainingToServer([rowToAppend]);
+        var rowToAppend = buildCounselRow(currentNameKey, juminForSave, type, text, now);
+        saveCounselToServer([rowToAppend]);
       }
 
       function updateFromSelection() {
@@ -1411,13 +2286,13 @@
         var juminFull = document.getElementById('jumin-full');
         currentNameKey = (nameEl && nameEl.value != null ? String(nameEl.value) : '').trim();
         currentJuminKey = normalizeJumin(juminFull && juminFull.value != null ? juminFull.value : '');
-        var currentNameDisplay = document.getElementById('prebargaining-current-name');
+        var currentNameDisplay = document.getElementById('counsel-current-name');
         if (currentNameDisplay) currentNameDisplay.textContent = currentNameKey ? '가입자: ' + currentNameKey : '';
         loadQaFromStorage();
         renderChat();
       }
 
-      window.updatePrebargainingChat = updateFromSelection;
+      window.updateCounselTodayChat = updateFromSelection;
 
       if (sendBtn) sendBtn.addEventListener('click', onSend);
       if (chatInput) chatInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); onSend(); } });
