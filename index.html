@@ -116,12 +116,19 @@
       background: #fafafa;
     }
 
-    /* .container — DESKTOP: flex 1, overflow hidden */
+    /* .container — DESKTOP: 좌6 / 우4 비율 */
     @media (min-width: 993px) {
       .container {
-        flex: 1;
         min-height: 0;
         padding: 1rem;
+      }
+
+      #left-container {
+        flex: 6;
+      }
+
+      #right-container {
+        flex: 4;
       }
     }
 
