@@ -2908,6 +2908,9 @@
     function toYYMMDD(val) {
       if (val == null || val === '') return '';
       var s = String(val).trim();
+      // 'YYYY-MM-DD' 또는 'YYYY-MM-DD HH:MM:SS' 형태 ISO 문자열 처리
+      var mIso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (mIso) return mIso[1].slice(2) + '/' + mIso[2] + '/' + mIso[3];
       var digits = s.replace(/\D/g, '');
       if (digits.length === 8) return digits.slice(2, 4) + '/' + digits.slice(4, 6) + '/' + digits.slice(6, 8);
       if (digits.length === 6) return digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4, 6);
@@ -2922,6 +2925,9 @@
     function toYYYYMM(val) {
       if (val == null || val === '') return '';
       var s = String(val).trim();
+      // 'YYYY-MM' 또는 'YYYY-MM-DD ...' 형태 ISO 문자열 처리
+      var mIso = s.match(/^(\d{4})-(\d{2})/);
+      if (mIso) return mIso[1] + '-' + mIso[2];
       var digits = s.replace(/\D/g, '');
       if (digits.length === 6) return digits.slice(0, 4) + '-' + digits.slice(4, 6);
       if (typeof val === 'number' && val >= 1 && val < 3000000 && typeof XLSX !== 'undefined' && XLSX.SSF && XLSX.SSF.parse_date_code) {
@@ -2950,6 +2956,10 @@
         } else if (el.id === 'jumin-input') {
           var juminFull = document.getElementById('jumin-full');
           if (juminFull) juminFull.value = '';
+          el.value = '';
+        } else if (el.id === 'pjumin-input') {
+          var pjuminFull = document.getElementById('pjumin-full');
+          if (pjuminFull) pjuminFull.value = '';
           el.value = '';
         } else if (el.classList.contains('detail-amount')) {
           el.value = '';
