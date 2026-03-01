@@ -206,7 +206,7 @@
     /* DB고객 세부내용 양식 테이블 */
     .detail-form {
       border: 1px solid #333;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
     }
 
     .detail-form td,
@@ -245,6 +245,15 @@
       padding: 0.05rem 0.2rem;
       font-size: inherit;
       border: 1px solid #ccc;
+      color: #aaa;
+      /* 기본: 흐리게 */
+      font-weight: normal;
+    }
+
+    /* 값이 있으면 진하게 */
+    .detail-form .detail-input.has-value {
+      color: #111;
+      font-weight: bold;
     }
 
     .detail-form .radio-inline {
@@ -1350,10 +1359,12 @@
         height: 28px !important;
       }
 
-      #btn-add-contract {
-        width: 54px !important;
-        font-size: 0.72rem !important;
-        height: 28px !important;
+      #chk-add-contract-label {
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
       }
 
       .detail-form {
@@ -1557,11 +1568,11 @@
                   <option value="기타">기타</option>
                 </select></td>
               <td class="value-cell" style="text-align: center;">
-                <label style="font-size: 0.8rem;">
+                <label style="font-size: 0.65rem;">
                   <input type="checkbox" id="detail-db-agree" data-field="문자전송" value="동의"
                     style="vertical-align: middle;" /> 동의
                 </label>
-                <label style="margin-left: 0.5rem; font-size: 0.8rem;">
+                <label style="margin-left: 0.5rem; font-size: 0.65rem;">
                   <input type="checkbox" id="detail-db-disagree" style="vertical-align: middle;" /> 부동의
                 </label>
               </td>
@@ -1593,6 +1604,11 @@
               <td class="value-cell"><input type="text" class="detail-input" data-field="직업" placeholder="직업" /></td>
             </tr>
             <tr>
+              <td class="label-cell">주소</td>
+              <td class="value-cell" colspan="7"><input type="text" class="detail-input" data-field="주소"
+                  placeholder="주소" /></td>
+            </tr>
+            <tr>
               <td class="label-cell">피보험자</td>
               <td class="value-cell"><input type="text" class="detail-input" data-field="피보험자" placeholder="피보험자" />
               </td>
@@ -1606,18 +1622,13 @@
               <td class="value-cell"><input type="text" class="detail-input" data-field="피직업" placeholder="피직업" /></td>
             </tr>
             <tr>
-              <td class="label-cell">주소</td>
-              <td class="value-cell" colspan="7"><input type="text" class="detail-input" data-field="주소"
-                  placeholder="주소" /></td>
-            </tr>
-            <tr>
               <td rowspan="4" class="section-label">
                 <div
                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.25rem; height: 100%;">
                   <span>계약상세</span>
-                  <button type="button" id="btn-add-contract" class="detail-form action-btn"
-                    style="width: 72px; height: 32px; padding: 0; font-size: 0.85rem; box-sizing: border-box;"
-                    title="계약상세만 입력받고 kb023_insurance 생성합니다." disabled>추가</button>
+                  <label id="chk-add-contract-label" title="체크 시 insurance 생성">
+                    <input type="checkbox" id="chk-add-contract" disabled />&nbsp;추가
+                  </label>
                 </div>
               </td>
               <td class="label-cell">상품종류</td>
@@ -1700,7 +1711,7 @@
             <div class="chat-messages" id="counsel-today-messages"></div>
             <div class="chat-input-row">
               <select id="counsel-send-type" class="chat-send-type" title="문(가입자) / 답(상담자)"
-                style="width: 72px; height: 32px; padding: 0; font-size: 0.85rem; box-sizing: border-box; text-align: center;">
+                style="width: 72px; height: 32px; padding: 0; font-size: 0.7rem; box-sizing: border-box; text-align: center;">
                 <option value="문">문(가입자)</option>
                 <option value="답">답(상담자)</option>
               </select>
@@ -1782,6 +1793,17 @@
       syncCounselHeightToLeft();
       window.addEventListener('resize', syncCounselHeightToLeft);
       requestAnimationFrame(function () { syncCounselHeightToLeft(); });
+
+      // detail-form 입력필드 플레이스홀더 제거 + input 이벤트 연결
+      document.querySelectorAll('.detail-form .detail-input').forEach(function (el) {
+        if (el.type !== 'checkbox' && el.type !== 'hidden') {
+          el.placeholder = '';
+          el.addEventListener('input', function () {
+            var hasVal = el.value && el.value.trim() !== '';
+            el.classList.toggle('has-value', !!hasVal);
+          });
+        }
+      });
 
       var agreeFilter = document.getElementById('info-agree-filter');
       if (agreeFilter) {
@@ -2745,16 +2767,45 @@
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
               .catch(function (e) { fail(e && e.message); });
           } else {
+            // 입력 모드
+            var chkAdd = document.getElementById('chk-add-contract');
+            var kName = (row['계약자명'] || '').trim();
+            var pName = (row['피보험자'] || '').trim();
+            var doInfo = !pName || kName !== pName; // 계약자명≠피보험자이면 information 생성
+            var doIns = chkAdd && chkAdd.checked;  // 추가 체크박스 체크시 insurance 생성
+
             var infoRow = {};
             if (infoHeaders.length) infoHeaders.forEach(function (h) { infoRow[h] = row[h] != null ? row[h] : (h === '주민번호' ? key.주민번호 : ''); });
             else infoRow = row;
-            run('/api/information', { action: 'insert', row: infoRow, headers: infoHeaders.length ? infoHeaders : undefined })
-              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'insert', row: rowForInsurance }); })
-              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/counsel', { headers: ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] }); })
-              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/accident', { headers: ['계약자명', '주민번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 구분: '', 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] }); })
-              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
-              .catch(function (e) { fail(e && e.message); });
+
+            var p = Promise.resolve({ ok: true });
+
+            if (doInfo) {
+              p = p.then(function (res) {
+                if (!res || !res.ok) throw new Error(res && res.error);
+                return run('/api/information', { action: 'insert', row: infoRow, headers: infoHeaders.length ? infoHeaders : undefined });
+              }).then(function (res) {
+                if (!res || !res.ok) throw new Error(res && res.error);
+                return run('/api/counsel', { headers: ['계약자명', '주민번호', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] });
+              }).then(function (res) {
+                if (!res || !res.ok) throw new Error(res && res.error);
+                return run('/api/accident', { headers: ['계약자명', '주민번호', '구분', '기록일자', '기록시간', '문/답', '세부내용'], rowsToAppend: [{ 계약자명: key.계약자명, 주민번호: key.주민번호, 구분: '', 기록일자: '', 기록시간: '', '문/답': '', 세부내용: '' }] });
+              });
+            }
+
+            if (doIns) {
+              p = p.then(function (res) {
+                if (!res || !res.ok) throw new Error(res && res.error);
+                return run('/api/insurance', { action: 'insert', row: rowForInsurance });
+              });
+            }
+
+            p.then(function (res) {
+              if (!res || !res.ok) throw new Error(res && res.error);
+              done(true);
+            }).catch(function (e) { fail(e && e.message); });
           }
+
         });
       }
       // 상품 관련 드롭다운 이벤트 제거 (텍스트 입력 필드 사용)
@@ -2975,7 +3026,18 @@
         }
       });
       updateInsuredSkipState();
+      updateDetailInputStyles();
     }
+
+    // 입력필드: 값 있으면 진하게, 없으면 흐리게
+    function updateDetailInputStyles() {
+      document.querySelectorAll('.detail-form .detail-input').forEach(function (el) {
+        if (el.type === 'checkbox' || el.type === 'hidden') return;
+        var hasVal = el.value && el.value.trim() !== '';
+        el.classList.toggle('has-value', !!hasVal);
+      });
+    }
+    window.updateDetailInputStyles = updateDetailInputStyles;
 
     window._selectedInfoRowIndex = null;
     window._selectedInsuranceRowIndex = null;
@@ -3016,11 +3078,12 @@
       var modOpt = document.getElementById('detail-mode-modify');
       var delOpt = document.getElementById('detail-mode-delete');
       var outOpt = document.getElementById('detail-mode-output');
-      var btnAdd = document.getElementById('btn-add-contract');
+      var chkAddEl = document.getElementById('chk-add-contract');
       if (modOpt) modOpt.disabled = false;
       if (delOpt) delOpt.disabled = false;
       if (outOpt) outOpt.disabled = false;
-      if (btnAdd) btnAdd.disabled = false;
+      if (chkAddEl) { chkAddEl.disabled = false; chkAddEl.checked = false; }
+
 
       if (insurance && insurance.headers) {
         renderInsuranceTable(insurance.headers, insuranceRows);
@@ -3846,36 +3909,71 @@
         });
       }
 
-      var btnAddContract = document.getElementById('btn-add-contract');
-      if (btnAddContract) {
-        btnAddContract.addEventListener('click', function () {
-          var row = getDetailFormRow();
-          var nameKey = (row.계약자명 || '').trim();
-          var juminKey = normalizeJumin(row.주민번호 || '');
-          if (!nameKey || !juminKey) {
-            alert('계약자명과 주민번호가 필요합니다.');
-            return;
-          }
-          var rowForInsurance = Object.assign({}, row, { 주의사항: row.참고사항 });
-          var key = { 계약자명: nameKey, 주민번호: juminKey };
-
-          fetch('/api/insurance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'insert', key: key, row: rowForInsurance })
-          }).then(function (r) { return r.json(); }).then(function (res) {
-            if (res.ok) {
-              alert('계약상세 정보가 추가되었습니다.');
-              if (typeof tryAutoLoadInsurance === 'function') tryAutoLoadInsurance();
-              if (window._infoTableData && window._selectedInfoRowIndex != null) {
-                window._onInfoRowClick(window._selectedInfoRowIndex);
-              }
-            } else {
-              alert('추가 실패: ' + (res.error || '알 수 없는 오류'));
-            }
-          }).catch(function (e) { alert('서버 오류'); });
-        });
+      // 추가 체크박스 활성화/비활성화 동기화
+      var chkAdd = document.getElementById('chk-add-contract');
+      var chkAddLabel = document.getElementById('chk-add-contract-label');
+      function setAddChkEnabled(enabled) {
+        if (chkAdd) chkAdd.disabled = !enabled;
+        if (chkAddLabel) chkAddLabel.style.opacity = enabled ? '1' : '0.4';
       }
+
+      // 계약자명 / 주민번호 입력 → information 자동 검색
+      function searchAndFillFromInfo() {
+        var modeSel = document.getElementById('detail-mode');
+        if (!modeSel || modeSel.value !== '입력') return;
+        var nameVal = (document.querySelector('.detail-form [data-field="계약자명"]') || {}).value || '';
+        var juminVal = (document.getElementById('jumin-input') || {}).value || '';
+        nameVal = nameVal.trim();
+        var juminNorm = normalizeJumin(juminVal);
+        if (!nameVal || juminNorm.length < 6) return;
+
+        var rows = window._infoTableData && window._infoTableData.rows;
+        if (!rows) return;
+        var found = null;
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          var rName = (r['계약자명'] || '').trim();
+          var rJumin = normalizeJumin(r['주민번호'] || '');
+          if (rName === nameVal && rJumin === juminNorm) { found = r; break; }
+        }
+        if (!found) return;
+
+        // 계약내용 필드 자동 채우기
+        var fields = ['계약자명', '주민번호', '연락처', '직업', '주소', '피보험자', '피주민번호', '피연락처', '피직업'];
+        fields.forEach(function (f) {
+          var el = document.querySelector('.detail-form [data-field="' + f + '"]');
+          if (el && found[f] != null) el.value = found[f];
+        });
+        // 주민번호 숨김 필드 동기화
+        var juminFull = document.getElementById('jumin-full');
+        if (juminFull && found['주민번호']) juminFull.value = found['주민번호'];
+        var pjuminFull = document.getElementById('pjumin-full');
+        if (pjuminFull && found['피주민번호']) pjuminFull.value = found['피주민번호'];
+
+        // 최근 insurance 행에서 계약상세 자동 채우기
+        var insRows = window._currentInsuranceRows;
+        if (insRows && insRows.length) {
+          var lastIns = insRows[insRows.length - 1];
+          var CONTRACT_KEYS = ['상품종류', '상품명', '증권번호', '납입만기', '주요담보', '납입보험료', '납입방법', '총납입보험료', '해지환급금', '대출금', '참고사항'];
+          CONTRACT_KEYS.forEach(function (k) {
+            var el = document.querySelector('.detail-form [data-field="' + k + '"]');
+            if (el && lastIns[k] != null) el.value = lastIns[k];
+          });
+        }
+
+        // 추가 체크박스 체크
+        if (chkAdd) { chkAdd.checked = true; }
+
+        // 주소 필드로 포커스
+        var addrEl = document.querySelector('.detail-form [data-field="주소"]');
+        if (addrEl) { setTimeout(function () { addrEl.focus(); }, 50); }
+      }
+
+      var nameInpForSearch = document.querySelector('.detail-form [data-field="계약자명"]');
+      var juminInpForSearch = document.getElementById('jumin-input');
+      if (nameInpForSearch) nameInpForSearch.addEventListener('blur', searchAndFillFromInfo);
+      if (juminInpForSearch) juminInpForSearch.addEventListener('blur', searchAndFillFromInfo);
+
 
       // 초기모드를 입력으로 세팅 (모든 필드 활성화 포함)
       window.addEventListener('DOMContentLoaded', function () {
