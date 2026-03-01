@@ -36,7 +36,8 @@
     }
 
     .header .header-title {
-      font-weight: bold;
+      font-size: 24px !important;
+      font-weight: bold !important;
       pointer-events: none;
     }
 
@@ -1932,17 +1933,17 @@
     var DETAIL_PLACEHOLDER_SELECT_ROW = 'information에서 행을 선택하면 데이터가 출력됩니다.';
     // information 테이블 컬럼 너비 비율(상대값, 합으로 정규화) 및 정렬
     var INFO_COL_WEIGHTS = {
-      '배정일자': 7, '종료일자': 7, '문자전송': 6, 'DB종류': 6, '계약자명': 8, '피보험자': 8,
+      '배정일자': 7, '종료': 3.5, '문자전송': 6, 'DB종류': 6, '계약자명': 8, '피보험자': 8,
       '주민번호': 10, '연락처': 10, '직업': 8, '피주민번호': 10
     };
     var INFO_COL_ALIGN = {
-      '배정일자': 'center', '종료일자': 'center', '문자전송': 'center', 'DB종류': 'left',
+      '배정일자': 'center', '종료': 'center', '문자전송': 'center', 'DB종류': 'left',
       '계약자명': 'center', '피보험자': 'center', '주민번호': 'center', '연락처': 'left',
       '직업': 'left', '피주민번호': 'center'
     };
     var INFO_COL_DEFAULT_WEIGHT = 7;
-    // information 테이블에 표시할 컬럼만 (순서대로). xlsx에 없으면 해당 컬럼은 제외.
-    var INFO_DISPLAY_HEADERS = ['배정일자', '종료일자', '문자전송', 'DB종류', '계약자명', '피보험자', '주민번호', '연락처', '직업', '피주민번호'];
+    // information 테이블에 표시할 컬럼만 (순서대로). xlsx에 없으면 해당 컬럼은 제외. (종료일자 -> 종료 변경)
+    var INFO_DISPLAY_HEADERS = ['배정일자', '종료', '문자전송', 'DB종류', '계약자명', '피보험자', '주민번호', '연락처', '직업', '피주민번호'];
     // kb023_information.xlsx → info-table (헤더·행은 시트와 1:1, 종료일자 제외 옵션)
     function refreshInfoTableDisplay() {
       var el = document.getElementById('info-table');
@@ -1973,9 +1974,10 @@
       var displayIndices = [];
       var displayHeaders = [];
       INFO_DISPLAY_HEADERS.forEach(function (name) {
-        var idx = headers.indexOf(name);
-        if (name === '주민번호' && idx === -1) idx = headers.indexOf('주민등록번호');
-        if (idx !== -1) { displayIndices.push(idx); displayHeaders.push(headers[idx]); }
+        var searchName = name === '종료' ? '종료일자' : name; // 엑셀에서는 '종료일자'로 찾고 출력만 '종료'로 함
+        var idx = headers.indexOf(searchName);
+        if (searchName === '주민번호' && idx === -1) idx = headers.indexOf('주민등록번호');
+        if (idx !== -1) { displayIndices.push(idx); displayHeaders.push(name); }
       });
       var weights = displayHeaders.map(function (h) { return INFO_COL_WEIGHTS[h] != null ? INFO_COL_WEIGHTS[h] : INFO_COL_DEFAULT_WEIGHT; });
       var sum = weights.reduce(function (a, b) { return a + b; }, 0);
@@ -2015,6 +2017,15 @@
               if (cval.length < 4) text = cval;
               else if (cval.length < 8) text = cval.slice(0, 3) + '-' + cval.slice(3);
               else text = cval.slice(0, 3) + '-' + cval.slice(3, 7) + '-' + cval.slice(7, 11);
+            } else if (headerName === '종료') {
+              // 종료 컬럼은 yy/mm 고정 포맷
+              if (cell instanceof Date) {
+                text = String(cell.getFullYear()).slice(-2) + '/' + String(cell.getMonth() + 1).padStart(2, '0');
+              } else {
+                var ms = String(cell).match(/^(\d{4})[-/](\d{1,2})/);
+                if (ms) text = ms[1].slice(-2) + '/' + ms[2].padStart(2, '0');
+                else text = formatCellForInfo(cell);
+              }
             } else {
               text = formatCellForInfo(cell);
             }
