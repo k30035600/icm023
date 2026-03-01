@@ -125,11 +125,11 @@
       }
 
       #left-container {
-        flex: 6;
+        flex: 3;
       }
 
       #right-container {
-        flex: 4;
+        flex: 7;
       }
 
       /* 드래그 리사이저 */
@@ -1761,6 +1761,7 @@
         <div id="insurance-table" class="placeholder">information에서 행을 선택하면 데이터가 출력됩니다.</div>
       </div>
     </section>
+    <div id="col-resizer"></div>
     <section class="container" id="right-container">
       <div class="right-top" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
         <h3>counsel</h3>
@@ -1811,7 +1812,6 @@
         </div>
       </div>
     </section>
-    <div id="col-resizer"></div>
   </main>
 
   <footer class="footer">
@@ -1857,10 +1857,10 @@
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
       });
-      // 더블클릭: 6/4 기본 비율로 초기화
+      // 더블클릭: 3:7 기본 비율로 초기화
       resizer.addEventListener('dblclick', function () {
-        leftEl.style.flex = '6';
-        rightEl.style.flex = '4';
+        leftEl.style.flex = '3';
+        rightEl.style.flex = '7';
         if (typeof window.syncCounselHeightToLeft === 'function') window.syncCounselHeightToLeft();
       });
     })();
