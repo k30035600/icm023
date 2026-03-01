@@ -125,11 +125,11 @@
       }
 
       #left-container {
-        flex: 3;
+        flex: 7;
       }
 
       #right-container {
-        flex: 7;
+        flex: 3;
       }
 
       /* 드래그 리사이저 */
@@ -1857,10 +1857,10 @@
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
       });
-      // 더블클릭: 3:7 기본 비율로 초기화
+      // 더블클릭: 7:3 기본 비율로 초기화
       resizer.addEventListener('dblclick', function () {
-        leftEl.style.flex = '3';
-        rightEl.style.flex = '7';
+        leftEl.style.flex = '7';
+        rightEl.style.flex = '3';
         if (typeof window.syncCounselHeightToLeft === 'function') window.syncCounselHeightToLeft();
       });
     })();
