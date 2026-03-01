@@ -64,9 +64,10 @@
     }
 
     .header .header-left button,
-    .header .header-btns button {
-      padding: 2px 3px !important;
-      height: 32px;
+    .header .header-btns button,
+    #backup-pwd {
+      padding: 2px 4px !important;
+      height: 28px;
       line-height: normal;
       font-size: 11px;
       cursor: pointer;
@@ -1306,13 +1307,14 @@
       .header .header-left button,
       .header .header-btns button {
         height: 28px;
-        padding: 0 0.6rem;
+        padding: 2px 4px !important;
         font-size: 11px;
       }
 
       #backup-pwd {
         width: 88px !important;
         height: 28px !important;
+        padding: 2px 4px !important;
         font-size: 11px;
       }
 
@@ -1391,7 +1393,7 @@
       .header .header-btns button {
         height: 26px;
         font-size: 11px;
-        padding: 0 0.45rem;
+        padding: 2px 4px !important;
       }
 
       .container {
@@ -1456,7 +1458,6 @@
     select {
       font-size: 14px !important;
       font-weight: bold !important;
-      padding: 2px 3px !important;
     }
   </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -1468,7 +1469,7 @@
     <div class="header-left" style="display: flex; align-items: center; gap: 0.5rem;">
       <button type="button" id="btn-help">도움말</button>
       <input type="password" id="backup-pwd" placeholder="패스워드"
-        style="width: 120px; height: 32px; padding: 0 0.6rem; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; outline: none;"
+        style="width: 120px; height: 28px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; outline: none;"
         title="백업/복원 암호" />
       <button type="button" id="btn-backup">백업</button>
       <button type="button" id="btn-restore">복원</button>
@@ -1477,7 +1478,7 @@
     <div class="header-btns" style="display: flex; align-items: center; gap: 0.5rem;">
       <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
       <select id="info-agree-filter"
-        style="height: 32px; padding: 2px 3px !important; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
+        style="height: 28px; padding: 2px 4px !important; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
         <option value="전체">전체</option>
         <option value="동의">동의</option>
         <option value="비동의">비동의</option>
@@ -1607,7 +1608,7 @@
                 style="vertical-align: middle; text-align: right; background: #f0f4f8; border-left: none;">
                 <div style="display: flex; justify-content: flex-end; align-items: center;">
                   <select id="detail-mode" class="detail-input"
-                    style="width: 72px; height: 32px; padding: 0; font-size: 11px; margin-right: 0.5rem; text-align: center; box-sizing: border-box;">
+                    style="width: 72px; height: 28px; padding: 0; font-size: 11px; margin-right: 0.5rem; text-align: center; box-sizing: border-box;">
                     <option value="입력" selected>입력</option>
                     <option value="조회" id="detail-mode-view" disabled>조회</option>
                     <option value="수정" id="detail-mode-modify" disabled>수정</option>
@@ -1615,7 +1616,7 @@
                     <option value="출력" id="detail-mode-output" disabled>출력</option>
                   </select>
                   <button type="button" id="detail-complete-btn" class="detail-form action-btn"
-                    style="width: 72px; height: 32px; padding: 0; font-size: 11px; line-height: normal; box-sizing: border-box;"
+                    style="width: 72px; height: 28px; padding: 0; font-size: 11px; line-height: normal; box-sizing: border-box;"
                     disabled>완료</button>
                 </div>
               </td>
@@ -1781,14 +1782,14 @@
             <div class="chat-messages" id="counsel-today-messages"></div>
             <div class="chat-input-row">
               <select id="counsel-send-type" class="chat-send-type" title="가입자 / 상담자"
-                style="width: 72px; height: 32px; padding: 0; font-size: 11px; box-sizing: border-box; text-align: center;">
+                style="width: 72px; height: 28px; padding: 0; font-size: 11px; box-sizing: border-box; text-align: center;">
                 <option value="문">가입자</option>
                 <option value="답">상담자</option>
               </select>
               <input type="text" class="chat-input counsel-chat-input" id="counsel-chat-input"
                 placeholder="오늘 상담 메시지 입력" />
               <button type="button" class="chat-send-btn action-btn" id="counsel-send-btn"
-                style="width: 72px; height: 32px; padding: 0; font-size: 11px; box-sizing: border-box; line-height: normal;">전송</button>
+                style="width: 72px; height: 28px; padding: 0; font-size: 11px; box-sizing: border-box; line-height: normal;">전송</button>
             </div>
           </div>
         </div>
@@ -1797,14 +1798,14 @@
           <h3 style="margin: 0;">accident</h3>
           <span style="display: flex; align-items: center;">
             <select id="accident-mode" class="detail-input"
-              style="width: 72px; height: 32px; padding: 0; box-sizing: border-box; text-align: center; margin-right: 0.5rem;"
+              style="width: 72px; height: 28px; padding: 0; box-sizing: border-box; text-align: center; margin-right: 0.5rem;"
               disabled>
               <option value="입력">입력</option>
               <option value="수정">수정</option>
               <option value="삭제">삭제</option>
             </select>
             <button type="button" id="accident-complete-btn" class="detail-form action-btn"
-              style="width: 72px; height: 32px; padding: 0; box-sizing: border-box; line-height: normal;"
+              style="width: 72px; height: 28px; padding: 0; box-sizing: border-box; line-height: normal;"
               disabled>완료</button>
           </span>
         </div>
