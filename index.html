@@ -10,24 +10,28 @@
       box-sizing: border-box;
     }
 
-    html,
+    /* ========= BASE (mobile-first) ========= */
     body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-
-    body {
       font-family: 'Malgun Gothic', sans-serif;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      overflow-y: auto;
-      /* 페이지 스크롤 허용 */
       overflow-x: hidden;
+      /* 기본: 세로 스크롤 허용 (페이지 스크롤) */
     }
 
-    /* 데스크톱: 헤더는 relative + 좌우 absolute 버튼 */
+    /* ========= DESKTOP ONLY ========= */
+    @media (min-width: 993px) {
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+    }
+
+    /* 헤더 */
     .header {
       position: relative;
       background: #1e3a5f;
@@ -94,25 +98,41 @@
       gap: 0.35rem;
     }
 
+    /* .body — BASE: 세로 스택, 자연 높이 */
     .body {
       flex: 1;
       display: flex;
+      flex-direction: column;
       gap: 0;
-      min-height: 0;
-      align-items: stretch;
-      overflow: hidden;
-      /* 데스크톱: 내부 세션별 스크롤 */
     }
 
+    /* .body — DESKTOP: 가로 배치 + overflow hidden */
+    @media (min-width: 993px) {
+      .body {
+        flex-direction: row;
+        align-items: stretch;
+        min-height: 0;
+        overflow: hidden;
+      }
+    }
+
+    /* .container — BASE: 자연 높이 */
     .container {
-      flex: 1;
-      min-width: 0;
-      min-height: 0;
-      padding: 1rem;
-      border: 1px solid #ddd;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
       background: #fafafa;
+    }
+
+    /* .container — DESKTOP: flex 1, overflow hidden */
+    @media (min-width: 993px) {
+      .container {
+        flex: 1;
+        min-height: 0;
+        padding: 1rem;
+      }
     }
 
     .container h3 {
@@ -1135,46 +1155,46 @@
       }
     }
 
-    /* 992px 이하: 좌우 컨테이너를 세로 스택, 페이지 스크롤 허용 */
+    /* 992px 이하: 세로 스택 + 페이지 스크롤 */
     @media (max-width: 992px) {
-      body {
-        height: auto;
-        min-height: 100vh;
-        overflow-y: auto;
-      }
-
       .body {
-        flex-direction: column;
-        height: auto;
-        overflow: visible;
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: visible !important;
         min-height: 0;
       }
 
       .container {
-        flex: none;
-        width: 100%;
-        height: auto;
-        min-height: 0;
-        overflow: visible;
+        flex: none !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
       }
 
-      #left-container .table-wrap:first-of-type {
-        flex: none;
-        height: 14rem;
+      .table-wrap {
+        flex: none !important;
+        height: auto !important;
+        min-height: 4rem;
         overflow: auto;
       }
 
+      #left-container .table-wrap:first-of-type {
+        height: 14rem !important;
+      }
+
       #left-container .table-wrap:nth-of-type(2) {
-        flex: none;
-        height: auto;
+        height: auto !important;
       }
 
       #left-container .table-wrap:nth-of-type(3) {
-        flex: none;
-        height: 10rem;
+        height: 10rem !important;
       }
 
-      /* counsel 영역: js 높이 동기화 해제 */
+      #right-container .table-wrap.table-rows-4 {
+        height: 10rem !important;
+      }
+
       #right-container .counsel-past-wrap,
       #right-container .counsel-chat-box,
       #right-container .counsel-section {
@@ -1184,18 +1204,13 @@
         overflow: auto;
       }
 
-      #right-container .table-wrap.table-rows-4 {
-        flex: none;
-        height: 10rem;
-        overflow: auto;
-      }
-
       #assign-modal .assign-box {
         width: 90%;
         max-width: none;
         max-height: 88vh;
       }
     }
+
 
     /* 768px 이하: 헤더 세로 정렬, 버튼 래핑 */
     @media (max-width: 768px) {
