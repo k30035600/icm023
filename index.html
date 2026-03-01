@@ -10,26 +10,34 @@
       box-sizing: border-box;
     }
 
+    html {
+      height: 100%;
+    }
+
     body {
       margin: 0;
       font-family: 'Malgun Gothic', sans-serif;
-      min-height: 100vh;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
+    /* 데스크톱: 헤더는 relative + 좌우 absolute 버튼 */
     .header {
       position: relative;
       background: #1e3a5f;
       color: #fff;
-      padding: 1rem 1.5rem;
+      padding: 0.6rem 1.5rem;
       font-size: 1.25rem;
       font-weight: bold;
       text-align: center;
+      flex-shrink: 0;
     }
 
     .header .header-title {
       font-weight: bold;
+      pointer-events: none;
     }
 
     .header .header-left {
@@ -37,6 +45,10 @@
       left: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: nowrap;
     }
 
     .header .header-btns {
@@ -44,6 +56,10 @@
       right: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: nowrap;
     }
 
     .header .header-left button,
@@ -80,6 +96,8 @@
       gap: 0;
       min-height: 0;
       align-items: stretch;
+      overflow: hidden;
+      /* 데스크톱: 내부 스크롤 */
     }
 
     .container {
@@ -1105,7 +1123,7 @@
 
     /* ===== RESPONSIVE ===== */
 
-    /* 태블릿 (≤1200px): 좌/우 컨테이너 세로 배치 시작 */
+    /* 1200px 이하: 모달 너비 조정 */
     @media (max-width: 1200px) {
       #assign-modal .assign-box {
         width: 90%;
@@ -1113,88 +1131,100 @@
       }
     }
 
-    /* 태블릿 (≤992px): 좌우 컨테이너 세로 배치 */
+    /* 992px 이하: 좌우 컨테이너를 세로 스택, 페이지 스크롤 허용 */
     @media (max-width: 992px) {
+      body {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
+
       .body {
         flex-direction: column;
         height: auto;
+        overflow: visible;
+        min-height: 0;
       }
 
       .container {
         flex: none;
         width: 100%;
+        height: auto;
         min-height: 0;
+        overflow: visible;
       }
 
-      #left-container {
-        border-right: none;
-        border-bottom: 1px solid #ddd;
-      }
-
-      #right-container {
-        border-top: none;
-      }
-
-      /* information 테이블은 최소 높이 지정 */
       #left-container .table-wrap:first-of-type {
         flex: none;
-        min-height: 10rem;
-        max-height: 20rem;
+        height: 14rem;
+        overflow: auto;
       }
 
-      /* counsel 높이 js 동기화 해제 – 자동높이 */
+      #left-container .table-wrap:nth-of-type(2) {
+        flex: none;
+        height: auto;
+      }
+
+      #left-container .table-wrap:nth-of-type(3) {
+        flex: none;
+        height: 10rem;
+      }
+
+      /* counsel 영역: js 높이 동기화 해제 */
       #right-container .counsel-past-wrap,
       #right-container .counsel-chat-box,
       #right-container .counsel-section {
         flex: none !important;
         height: auto !important;
-        max-height: none !important;
+        max-height: 16rem !important;
+        overflow: auto;
+      }
+
+      #right-container .table-wrap.table-rows-4 {
+        flex: none;
+        height: 10rem;
+        overflow: auto;
       }
 
       #assign-modal .assign-box {
         width: 90%;
         max-width: none;
-        max-height: 85vh;
+        max-height: 88vh;
       }
     }
 
-    /* 스마트폰 가로 + 작은 태블릿 (≤768px) */
+    /* 768px 이하: 헤더 세로 정렬, 버튼 래핑 */
     @media (max-width: 768px) {
 
-      /* === 헤더 === */
+      /* 헤더: absolute 해제 → 세로 flex */
       .header {
         position: static;
         padding: 0.5rem 0.75rem;
-        font-size: 1rem;
+        text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: stretch;
-        gap: 0.4rem;
+        align-items: center;
+        gap: 0.35rem;
       }
 
-      .header-title {
-        text-align: center;
+      .header .header-title {
+        order: 0;
         font-size: 1.05rem;
-        order: -1;
       }
 
       .header .header-left {
         position: static;
         transform: none;
-        display: flex;
+        order: 1;
         flex-wrap: wrap;
-        align-items: center;
-        gap: 0.35rem;
         justify-content: center;
       }
 
       .header .header-btns {
         position: static;
         transform: none;
-        display: flex;
+        order: 2;
         flex-wrap: wrap;
-        align-items: center;
-        gap: 0.35rem;
         justify-content: center;
       }
 
@@ -1202,21 +1232,20 @@
       .header .header-btns button {
         height: 28px;
         padding: 0 0.6rem;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
       }
 
       #backup-pwd {
-        width: 90px !important;
+        width: 88px !important;
         height: 28px !important;
-        font-size: 0.82rem !important;
+        font-size: 0.8rem !important;
       }
 
       #info-agree-filter {
         height: 28px !important;
-        font-size: 0.82rem !important;
+        font-size: 0.8rem !important;
       }
 
-      /* === 컨테이너 === */
       .container {
         padding: 0.5rem;
       }
@@ -1225,60 +1254,40 @@
         font-size: 0.9rem;
       }
 
-      /* === 세부내용 폼: 컬럼 수 축소 === */
       .detail-form {
-        font-size: 0.7rem;
+        font-size: 0.68rem;
       }
 
       .detail-form .label-cell {
+        font-size: 0.63rem;
         white-space: normal;
-        font-size: 0.65rem;
-        padding: 0.05rem 0.2rem;
+        padding: 0.03rem 0.15rem;
       }
 
-      .detail-form .value-cell {
-        min-width: 3em;
-      }
-
-      /* === 테이블 === */
       #info-table table,
       #insurance-table table,
       #accident-table table {
-        font-size: 0.65rem;
+        font-size: 0.63rem;
       }
 
-      /* === 배정자료 모달 === */
       #assign-modal .assign-box {
         width: 97%;
-        max-height: 88vh;
-      }
-
-      /* === 도움말 모달 === */
-      #help-modal .help-box {
-        max-width: 97%;
+        max-height: 90vh;
       }
 
       #help-modal .help-box .help-body {
         flex-direction: column;
-        gap: 0.75rem;
       }
 
-      /* === 채팅 === */
       .chat-input-row {
-        padding: 0.35rem 0.5rem;
+        padding: 0.3rem 0.4rem;
         gap: 0.2rem;
       }
 
-      .chat-send-btn {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.8rem;
-      }
-
-      /* === 푸터 === */
       .footer {
         padding: 0.4rem 0.75rem;
         flex-wrap: wrap;
-        gap: 0.4rem;
+        gap: 0.35rem;
         font-size: 0.8rem;
       }
 
@@ -1292,19 +1301,22 @@
       }
     }
 
-    /* 스마트폰 세로 (≤576px) */
+    /* 576px 이하: 최소화 */
     @media (max-width: 576px) {
       .header {
         padding: 0.4rem 0.5rem;
-        gap: 0.3rem;
+        gap: 0.25rem;
       }
 
-      .header-title {
+      .header .header-title {
         font-size: 0.95rem;
       }
 
-      .header .header-checkbox {
+      .header .header-left button,
+      .header .header-btns button {
+        height: 26px;
         font-size: 0.75rem;
+        padding: 0 0.45rem;
       }
 
       .container {
@@ -1313,58 +1325,44 @@
 
       .container h3 {
         font-size: 0.85rem;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.25rem;
       }
 
-      /* 세부내용 폼 버튼 축소 */
       #detail-mode,
       #detail-complete-btn {
-        width: 58px !important;
-        font-size: 0.75rem !important;
+        width: 54px !important;
+        font-size: 0.72rem !important;
+        height: 28px !important;
       }
 
       #btn-add-contract {
-        width: 58px !important;
-        font-size: 0.75rem !important;
+        width: 54px !important;
+        font-size: 0.72rem !important;
+        height: 28px !important;
       }
 
       .detail-form {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
       }
 
       .detail-form td,
       .detail-form th {
-        padding: 0.03rem 0.15rem;
-      }
-
-      .detail-form .section-label {
-        font-size: 0.65rem;
+        padding: 0.02rem 0.1rem;
       }
 
       #info-table table,
       #insurance-table table,
       #accident-table table {
-        font-size: 0.6rem;
-      }
-
-      #info-table table td,
-      #info-table table th {
-        padding: 0.15rem 0.3rem;
+        font-size: 0.58rem;
       }
 
       #assign-modal .assign-box {
         width: 99%;
-        left: 0.5% !important;
-        right: 0.5% !important;
-      }
-
-      .table-wrap {
-        border-radius: 2px;
       }
 
       .footer .footer-btn {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.75rem;
+        padding: 0.25rem 0.45rem;
+        font-size: 0.73rem;
       }
     }
   </style>
