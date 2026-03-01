@@ -134,12 +134,24 @@
 
       /* 드래그 리사이저 */
       #col-resizer {
-        width: 6px;
+        width: 8px;
         cursor: col-resize;
-        background: #d0dae8;
+        background: #7a9fcb;
         flex-shrink: 0;
         position: relative;
         transition: background 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #col-resizer::after {
+        content: '';
+        display: block;
+        width: 2px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 2px;
       }
 
       #col-resizer:hover,
