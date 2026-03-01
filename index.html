@@ -21,15 +21,7 @@
       /* 기본: 세로 스크롤 허용 (페이지 스크롤) */
     }
 
-    /* ========= DESKTOP ONLY ========= */
-    @media (min-width: 993px) {
 
-      html,
-      body {
-        height: 100%;
-        overflow: hidden;
-      }
-    }
 
     /* 헤더 */
     .header {
@@ -106,13 +98,11 @@
       gap: 0;
     }
 
-    /* .body — DESKTOP: 가로 배치 + overflow hidden */
+    /* .body — DESKTOP: 가로 배치 */
     @media (min-width: 993px) {
       .body {
         flex-direction: row;
         align-items: stretch;
-        min-height: 0;
-        overflow: hidden;
       }
     }
 
@@ -146,29 +136,29 @@
       font-size: 0.9rem;
     }
 
+    /* table-wrap: 명시적 높이로 내부 스크롤 */
     .table-wrap {
-      flex: 1;
       overflow: auto;
       background: #fff;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
-      min-height: 0;
       width: 100%;
       box-sizing: border-box;
     }
 
     #left-container .table-wrap:first-of-type {
-      flex: 3 1 0;
+      height: 14rem;
+      /* information 테이블 */
     }
 
     #left-container .table-wrap:nth-of-type(2) {
-      flex: 0 0 auto;
-      height: fit-content;
-      align-self: flex-start;
+      height: auto;
+      /* DB고객 세부내용 폼 */
     }
 
     #left-container .table-wrap:nth-of-type(3) {
-      flex: 1 1 0;
+      height: 12rem;
+      /* insurance 테이블 */
     }
 
     table {
@@ -591,8 +581,7 @@
     }
 
     #right-container .table-wrap.table-rows-4 {
-      flex: 1 1 0;
-      min-height: 0;
+      height: 12rem;
       overflow: auto;
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -1743,38 +1732,16 @@
 
   <script>
     function syncCounselHeightToLeft() {
-      var MOBILE_BP = 992;
-      var left = document.getElementById('left-container');
+      // height 고정 제거 - 페이지 자연 스크롤 사용
+      // counsel 입력창 너비 CSS 변수만 동기화
       var counselSection = document.querySelector('#right-container .counsel-section');
       var pastWrap = document.querySelector('#right-container .counsel-past-wrap');
       var chatBox = document.querySelector('#right-container .counsel-chat-box');
-
-      // 모바일 / 태블릿: 인라인 height 제거 후 종료 (미디어쿼리가 담당)
-      if (window.innerWidth <= MOBILE_BP) {
-        if (pastWrap) { pastWrap.style.flex = ''; pastWrap.style.height = ''; }
-        if (chatBox) { chatBox.style.flex = ''; chatBox.style.height = ''; }
-        if (counselSection) { counselSection.style.flex = ''; counselSection.style.height = ''; }
-        return;
-      }
-
-      if (!left || left.children.length < 3) return;
-      var infoWrap = left.children[1];
-      var detailWrap = left.children[2];
-      var infoH = 0, detailH = 0;
-      if (pastWrap && infoWrap) {
-        infoH = Math.max(0, Math.round(infoWrap.getBoundingClientRect().height));
-        pastWrap.style.flex = 'none';
-        pastWrap.style.height = infoH + 'px';
-      }
-      if (chatBox && detailWrap) {
-        detailH = Math.max(0, Math.round(detailWrap.getBoundingClientRect().height));
-        chatBox.style.flex = 'none';
-        chatBox.style.height = detailH + 'px';
-      }
-      if (counselSection) {
-        counselSection.style.flex = '0 0 auto';
-        counselSection.style.height = Math.max(0, infoH + detailH + 4) + 'px';
-      }
+      // 인라인 height 초기화 (이전 JS가 설정했을 수 있음)
+      if (pastWrap) { pastWrap.style.flex = ''; pastWrap.style.height = ''; }
+      if (chatBox) { chatBox.style.flex = ''; chatBox.style.height = ''; }
+      if (counselSection) { counselSection.style.flex = ''; counselSection.style.height = ''; }
+      // 입력창 너비 CSS 변수 업데이트
       var counselInput = document.getElementById('counsel-chat-input');
       if (counselInput && counselSection) {
         var w = counselInput.offsetWidth;
@@ -1782,6 +1749,7 @@
       }
     }
     window.syncCounselHeightToLeft = syncCounselHeightToLeft;
+
     window.addEventListener('DOMContentLoaded', function () {
       syncCounselHeightToLeft();
       window.addEventListener('resize', syncCounselHeightToLeft);
