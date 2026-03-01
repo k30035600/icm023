@@ -2523,6 +2523,13 @@
             if (accEl) accEl.innerHTML = '<div class="placeholder">' + DETAIL_PLACEHOLDER_SELECT_ROW + '</div>';
             window._currentAccidentHeaders = null;
             window._currentAccidentRows = null;
+            // 추가 체크박스 활성화
+            var chkAdd = document.getElementById('chk-add-contract');
+            if (chkAdd) { chkAdd.disabled = false; chkAdd.checked = false; }
+          } else {
+            // 입력 외 모드: 체크박스 비활성
+            var chkAdd = document.getElementById('chk-add-contract');
+            if (chkAdd) { chkAdd.disabled = true; chkAdd.checked = false; }
           }
           var enable = mode === '입력' || mode === '수정';
           setDetailFormSectionsEnabled(enable);
@@ -2864,6 +2871,12 @@
         var j = juminFull.value.replace(/\D/g, '');
         if (j.length === 13) row['주민번호'] = j.slice(0, 6) + '-' + j.slice(6, 13);
         else row['주민번호'] = j;
+      }
+      var pjuminFull = document.getElementById('pjumin-full');
+      if (pjuminFull) {
+        var pj = pjuminFull.value.replace(/\D/g, '');
+        if (pj.length === 13) row['피주민번호'] = pj.slice(0, 6) + '-' + pj.slice(6, 13);
+        else if (pj) row['피주민번호'] = pj;
       }
       return row;
     }

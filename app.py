@@ -174,6 +174,9 @@ def favicon():
 
 @app.route('/<path:path>')
 def static_file(path):
+    # .source 폴더 직접 접근 차단 (개인정보 보호)
+    if path.startswith('.source') or '/.source/' in path:
+        return '', 403
     return send_from_directory(BASE_DIR, path)
 
 # ---------------------------------------------------------------------------
@@ -246,12 +249,12 @@ def api_backup_restore():
                                         try:
                                             new_row.append(datetime.fromisoformat(cell))
                                             continue
-                                        except: pass
+                                        except (ValueError, AttributeError): pass
                                     elif re.match(r'^\d{4}-\d{2}-\d{2}$', cell):
                                         try:
                                             new_row.append(date.fromisoformat(cell))
                                             continue
-                                        except: pass
+                                        except (ValueError, AttributeError): pass
                                 new_row.append(cell)
                             ws.append(new_row)
                         wb.save(xlsx_path)
@@ -522,8 +525,9 @@ def accident_append():
         if not rows_to_append:
             return jsonify({'ok': True, 'appended': 0})
 
+        today = date.today()
         today_serial = yyyymmdd_to_excel_date(
-            date.today().year * 10000 + date.today().month * 100 + date.today().day
+            today.year * 10000 + today.month * 100 + today.day
         )
         with excel_lock:
             wb, ws, _ = _load_or_create_wb(ACCIDENT_FILE, headers, sheet_title='accident')
@@ -586,47 +590,6 @@ def counsel_append():
 @app.route('/api/shutdown', methods=['POST'])
 def shutdown():
     os._exit(0)
-    return jsonify({'ok': True})
-
-@app.route('/api/backup_restore', methods=['POST'])
-def backup_restore():
-    data = request.get_json(force=True)
-    action = data.get('action')
-    password = data.get('password')
-    files = [
-        'kb023_information.xlsx',
-        'kb023_insurance.xlsx',
-        'kb023_accident.xlsx',
-        'kb023_counsel.xlsx',
-        'kb023_products.xlsx'
-    ]
-    backup_dir = os.path.join(os.path.dirname(__file__), 'backup')
-    try:
-        if action == 'backup' and password == 'backup':
-            if not os.path.exists(backup_dir):
-                os.makedirs(backup_dir)
-            with excel_lock:
-                for f in files:
-                    src = os.path.join(os.path.dirname(__file__), f)
-                    if os.path.exists(src):
-                        shutil.copy2(src, os.path.join(backup_dir, f))
-            return jsonify({'ok': True, 'message': '백업이 완료되었습니다.'})
-            
-        elif action == 'restore' and password == 'restore':
-            if not os.path.exists(backup_dir):
-                return jsonify({'ok': False, 'error': '백업 폴더가 없습니다.'})
-            with excel_lock:
-                for f in files:
-                    src = os.path.join(backup_dir, f)
-                    dst = os.path.join(os.path.dirname(__file__), f)
-                    if os.path.exists(src):
-                        shutil.copy2(src, dst)
-            return jsonify({'ok': True, 'message': '복원이 완료되었습니다.'})
-            
-        else:
-            return jsonify({'ok': False, 'error': '패스워드가 틀립니다.'}), 401
-    except Exception as e:
-        return jsonify({'ok': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
