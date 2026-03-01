@@ -1148,6 +1148,25 @@
       #print-area table.print-counsel-table tr.print-row-답 td:last-child {
         text-align: right;
       }
+
+      #print-area table.assign-print-table {
+        border: 1px solid #000;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+
+      #print-area table.assign-print-table th,
+      #print-area table.assign-print-table td {
+        border: 0.5px solid #999;
+        padding: 0.2rem 0.5rem;
+      }
+
+      #print-area table.assign-print-table th {
+        background: #e8e8e8;
+        font-weight: normal;
+        color: #000;
+      }
     }
 
     /* ===== RESPONSIVE ===== */
@@ -1391,6 +1410,15 @@
         font-size: 11px;
       }
     }
+
+    /* 모든 버튼 폰트 13px !important 변경 */
+    button,
+    .action-btn,
+    .footer-btn,
+    .chat-send-btn,
+    .detail-form .action-btn {
+      font-size: 13px !important;
+    }
   </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -1511,8 +1539,10 @@
   </div>
   <div id="assign-modal" role="dialog" aria-label="배정자료">
     <div class="assign-box">
-      <div class="assign-box-header">
-        <h3>배정자료</h3>
+      <div class="assign-box-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; flex: 1;">배정자료</h3>
+        <button type="button" id="btn-assign-print" class="action-btn"
+          style="width: 72px; height: 32px; padding: 0; box-sizing: border-box; line-height: normal;">출력</button>
       </div>
       <div class="assign-table-wrap">
         <div id="assign-table-inner" class="placeholder">배정자료 버튼을 누르면 information/insurance 데이터를 배정일자·계약자순으로 표시합니다.
@@ -3738,6 +3768,29 @@
           if (!document.getElementById('assign-modal').classList.contains('open')) return;
           if (e.target.closest('.assign-box')) return;
           closeAssignModal();
+        });
+      }
+
+      var btnAssignPrint = document.getElementById('btn-assign-print');
+      if (btnAssignPrint) {
+        btnAssignPrint.addEventListener('click', function () {
+          var printEl = document.getElementById('print-area');
+          var inner = document.getElementById('assign-table-inner');
+          if (!printEl || !inner) return;
+          var now = new Date();
+          var todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+          var html = '<div class="print-main-title">배정자료</div>';
+          html += '<div class="print-info-line"><span class="print-output-date">출력일: ' + todayStr + '</span></div>';
+          html += inner.innerHTML;
+          printEl.innerHTML = html;
+          document.body.classList.add('print-output');
+          function cleanup() {
+            document.body.classList.remove('print-output');
+            if (printEl) printEl.innerHTML = '';
+            window.removeEventListener('afterprint', cleanup);
+          }
+          window.addEventListener('afterprint', cleanup);
+          window.print();
         });
       }
     })();
