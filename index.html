@@ -2153,10 +2153,7 @@
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       }
       if (key === '납입만기') {
-        if (typeof val === 'number' && val >= 1 && val < 3000000) {
-          var d = XLSX.SSF.parse_date_code(val);
-          if (d && d.y >= 1900) return String(d.y) + '-' + String(d.m).padStart(2, '0');
-        }
+        return toYYYYMM(val);
       }
       return String(val).replace(/</g, '&lt;');
     }
