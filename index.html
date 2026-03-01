@@ -131,6 +131,21 @@
       #right-container {
         flex: 4;
       }
+
+      /* 드래그 리사이저 */
+      #col-resizer {
+        width: 6px;
+        cursor: col-resize;
+        background: #d0dae8;
+        flex-shrink: 0;
+        position: relative;
+        transition: background 0.15s;
+      }
+
+      #col-resizer:hover,
+      #col-resizer.dragging {
+        background: #2c5282;
+      }
     }
 
     .container h3 {
@@ -413,6 +428,10 @@
       white-space: nowrap;
       min-width: 0;
       font-weight: bold;
+    }
+
+    #info-table table th {
+      text-align: center;
     }
 
     #info-table table tbody tr {
@@ -1780,6 +1799,7 @@
         </div>
       </div>
     </section>
+    <div id="col-resizer"></div>
   </main>
 
   <footer class="footer">
@@ -1789,6 +1809,51 @@
   </footer>
 
   <script>
+    // 좌우 컨테이너 드래그 리사이저
+    (function () {
+      var resizer = document.getElementById('col-resizer');
+      var leftEl = document.getElementById('left-container');
+      var rightEl = document.getElementById('right-container');
+      if (!resizer || !leftEl || !rightEl) return;
+      var startX, startLeftFlex, startRightFlex;
+      resizer.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        startX = e.clientX;
+        startLeftFlex = parseFloat(getComputedStyle(leftEl).flexGrow) || 6;
+        startRightFlex = parseFloat(getComputedStyle(rightEl).flexGrow) || 4;
+        resizer.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        function onMouseMove(e2) {
+          var dx = e2.clientX - startX;
+          var bodyW = (leftEl.parentElement || document.body).offsetWidth;
+          var totalFlex = startLeftFlex + startRightFlex;
+          var delta = (dx / bodyW) * totalFlex;
+          var newLeft = Math.max(1, startLeftFlex + delta);
+          var newRight = Math.max(1, totalFlex - newLeft);
+          leftEl.style.flex = newLeft.toFixed(4);
+          rightEl.style.flex = newRight.toFixed(4);
+          if (typeof window.syncCounselHeightToLeft === 'function') window.syncCounselHeightToLeft();
+        }
+        function onMouseUp() {
+          resizer.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        }
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+      // 더블클릭: 6/4 기본 비율로 초기화
+      resizer.addEventListener('dblclick', function () {
+        leftEl.style.flex = '6';
+        rightEl.style.flex = '4';
+        if (typeof window.syncCounselHeightToLeft === 'function') window.syncCounselHeightToLeft();
+      });
+    })();
+
+
     function syncCounselHeightToLeft() {
       var left = document.getElementById('left-container');
       var counselSection = document.querySelector('#right-container .counsel-section');
