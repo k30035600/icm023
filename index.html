@@ -2698,9 +2698,22 @@
           }
           if (mode !== '입력' && mode !== '수정' && mode !== '삭제') return;
           var row = getDetailFormRow();
+
+          // 입력 모드: 동의/부동의 유효성 검사
+          if (mode === '입력') {
+            var agreeC = document.getElementById('detail-db-agree');
+            var disagreeC = document.getElementById('detail-db-disagree');
+            if (!agreeC.checked && !disagreeC.checked) {
+              alert('동의 또는 부동의를 선택해주세요.');
+              agreeC.focus();
+              return;
+            }
+          }
+
           var rowForInsurance = Object.assign({}, row, { 주의사항: row.참고사항 });
           var key = { 계약자명: (row.계약자명 || '').trim(), 주민번호: row.주민번호 || '' };
           var infoHeaders = (window._infoTableData && window._infoTableData.headers) || [];
+
           var run = function (url, body) {
             return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
           };
@@ -2953,6 +2966,70 @@
       });
     }
 
+    // 입력 모드에서 계약자명 blur → 피보험자에 자동 복사 (비어있는 경우)
+    (function () {
+      function getMode() {
+        var s = document.getElementById('detail-mode');
+        return s ? s.value : '';
+      }
+      function copyContractorToInsured() {
+        if (getMode() !== '입력') return;
+        var map = { '계약자명': '피보험자', '주민번호': '피주민번호', '연락처': '피연락처', '직업': '피직업' };
+        Object.keys(map).forEach(function (src) {
+          var dst = map[src];
+          var srcEl = document.querySelector('.detail-form [data-field="' + src + '"]');
+          var dstEl = document.querySelector('.detail-form [data-field="' + dst + '"]');
+          if (srcEl && dstEl && srcEl.value && !dstEl.value) {
+            dstEl.value = srcEl.value;
+            if (dst === '피주민번호') {
+              var pjFull = document.getElementById('pjumin-full');
+              if (pjFull) pjFull.value = document.getElementById('jumin-full') ? document.getElementById('jumin-full').value : srcEl.value.replace(/-/g, '');
+            }
+          }
+        });
+        updateInsuredSkipState();
+        if (typeof updateDetailInputStyles === 'function') updateDetailInputStyles();
+      }
+
+      // 직업 blur 시 피보험자로 자동복사
+      var jobEl = document.querySelector('.detail-form [data-field="직업"]');
+      if (jobEl) jobEl.addEventListener('blur', copyContractorToInsured);
+
+      // 피보험자 blur → 동일인: 상품종류로 포커스 / 다른사람: 피주민번호 초기화 후 포커스
+      var pNameEl = document.querySelector('.detail-form [data-field="피보험자"]');
+      if (pNameEl) {
+        pNameEl.addEventListener('blur', function () {
+          if (getMode() !== '입력') return;
+          var kNameEl = document.querySelector('.detail-form [data-field="계약자명"]');
+          var kName = kNameEl ? kNameEl.value.trim() : '';
+          var pName = this.value.trim();
+          if (!pName) return;
+          if (pName === kName) {
+            // 동일인: 피주민번호/피연락처/피직업 계약자 값으로 채우고 skip
+            var map = { '피주민번호': '주민번호', '피연락처': '연락처', '피직업': '직업' };
+            Object.keys(map).forEach(function (dst) {
+              var srcEl = document.querySelector('.detail-form [data-field="' + map[dst] + '"]');
+              var dstEl = document.querySelector('.detail-form [data-field="' + dst + '"]');
+              if (srcEl && dstEl) dstEl.value = srcEl.value;
+            });
+            updateInsuredSkipState();
+            // 상품종류로 포커스
+            var prodEl = document.getElementById('detail-product-type') || document.querySelector('.detail-form [data-field="상품종류"]');
+            if (prodEl) setTimeout(function () { prodEl.focus(); }, 50);
+          } else {
+            // 다른사람: 피주민번호/피연락처/피직업 초기화 후 피주민번호로 포커스
+            ['피주민번호', '피연락처', '피직업'].forEach(function (f) {
+              var el = document.querySelector('.detail-form [data-field="' + f + '"]');
+              if (el) { el.value = ''; el.tabIndex = 0; }
+            });
+            var pjumin = document.getElementById('pjumin-input');
+            if (pjumin) setTimeout(function () { pjumin.focus(); }, 50);
+          }
+          if (typeof updateDetailInputStyles === 'function') updateDetailInputStyles();
+        });
+      }
+    })();
+
     function fillDetailForm(merged) {
       if (!merged || typeof merged !== 'object') return;
       updateProductNameOptions(merged['상품종류'] != null ? String(merged['상품종류']) : '');
@@ -2991,7 +3068,13 @@
             el.value = val;
           }
         } else if (el.type === 'checkbox') {
-          el.checked = (val === '동의');
+          if (el.id === 'detail-db-agree') {
+            el.checked = (val === '동의');
+            var disagree = document.getElementById('detail-db-disagree');
+            if (disagree) disagree.checked = (val === '부동의');
+          } else {
+            el.checked = (val === '동의');
+          }
         } else if (el.id === 'jumin-input') {
           document.getElementById('jumin-full').value = normalizeJumin(val);
           var raw = normalizeJumin(val);
