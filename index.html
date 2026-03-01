@@ -1894,16 +1894,16 @@
     // information 테이블 컬럼 너비 비율(상대값, 합으로 정규화) 및 정렬
     var INFO_COL_WEIGHTS = {
       '배정일자': 7, '종료일자': 7, '문자전송': 6, 'DB종류': 6, '계약자명': 8, '피보험자': 8,
-      '주민번호': 10, '연락처': 10, '직업': 8, '피주민번호': 10, '피연락처': 10, '피직업': 8
+      '주민번호': 10, '연락처': 10, '직업': 8, '피주민번호': 10, '피직업': 8
     };
     var INFO_COL_ALIGN = {
       '배정일자': 'center', '종료일자': 'center', '문자전송': 'center', 'DB종류': 'left',
       '계약자명': 'center', '피보험자': 'center', '주민번호': 'center', '연락처': 'left',
-      '직업': 'left', '피주민번호': 'center', '피연락처': 'left', '피직업': 'left'
+      '직업': 'left', '피주민번호': 'center', '피직업': 'left'
     };
     var INFO_COL_DEFAULT_WEIGHT = 7;
     // information 테이블에 표시할 컬럼만 (순서대로). xlsx에 없으면 해당 컬럼은 제외.
-    var INFO_DISPLAY_HEADERS = ['배정일자', '종료일자', '문자전송', 'DB종류', '계약자명', '피보험자', '주민번호', '연락처', '직업', '피주민번호', '피연락처', '피직업'];
+    var INFO_DISPLAY_HEADERS = ['배정일자', '종료일자', '문자전송', 'DB종류', '계약자명', '피보험자', '주민번호', '연락처', '직업', '피주민번호', '피직업'];
     // kb023_information.xlsx → info-table (헤더·행은 시트와 1:1, 종료일자 제외 옵션)
     function refreshInfoTableDisplay() {
       var el = document.getElementById('info-table');
