@@ -1512,7 +1512,7 @@
           <ul>
             <li><strong>과거 상담</strong>: 선택한 계약자의 counsel 데이터가 문/답 말풍선으로 표시됩니다. 말풍선 옆에 "yy/mm/dd (요일) HH:MM" 형식으로 표시됩니다.
             </li>
-            <li><strong>오늘 상담</strong>: 문(가입자)/답(상담자) 드롭다운을 선택한 뒤 메시지를 입력하고 전송합니다. 문으로 전송하면 드롭다운이 답으로, 답으로 전송하면 문으로 자동
+            <li><strong>오늘 상담</strong>: 가입자/상담자 드롭다운을 선택한 뒤 메시지를 입력하고 전송합니다. 문으로 전송하면 드롭다운이 답으로, 답으로 전송하면 문으로 자동
               변경됩니다. 전송 시 /api/counsel로 저장됩니다.</li>
             <li>말풍선 너비는 "오늘 상담 메시지 입력" 입력 필드 너비와 맞춰지며, 배경색은 50% 투명으로 표시됩니다.</li>
           </ul>
@@ -1746,10 +1746,10 @@
             </div>
             <div class="chat-messages" id="counsel-today-messages"></div>
             <div class="chat-input-row">
-              <select id="counsel-send-type" class="chat-send-type" title="문(가입자) / 답(상담자)"
+              <select id="counsel-send-type" class="chat-send-type" title="가입자 / 상담자"
                 style="width: 72px; height: 32px; padding: 0; font-size: 11px; box-sizing: border-box; text-align: center;">
-                <option value="문">문(가입자)</option>
-                <option value="답">답(상담자)</option>
+                <option value="문">가입자</option>
+                <option value="답">상담자</option>
               </select>
               <input type="text" class="chat-input counsel-chat-input" id="counsel-chat-input"
                 placeholder="오늘 상담 메시지 입력" />
