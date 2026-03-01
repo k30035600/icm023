@@ -1915,6 +1915,7 @@
       var excludeChecked = excludeChk && excludeChk.checked;
       var agreeFilter = document.getElementById('info-agree-filter');
       var agreeVal = agreeFilter ? agreeFilter.value : '전체';
+      var colEnddate = headers.indexOf('종료일자');
       var colAgree = headers.indexOf('문자전송');
       var indices = rows.map(function (_, i) { return i; });
       if (excludeChecked && colEnddate !== -1) {
