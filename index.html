@@ -10,16 +10,20 @@
       box-sizing: border-box;
     }
 
-    html {
+    html,
+    body {
+      margin: 0;
+      padding: 0;
       height: 100%;
     }
 
     body {
-      margin: 0;
       font-family: 'Malgun Gothic', sans-serif;
-      height: 100%;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
+      overflow-y: auto;
+      /* 페이지 스크롤 허용 */
       overflow-x: hidden;
     }
 
@@ -97,7 +101,7 @@
       min-height: 0;
       align-items: stretch;
       overflow: hidden;
-      /* 데스크톱: 내부 스크롤 */
+      /* 데스크톱: 내부 세션별 스크롤 */
     }
 
     .container {
@@ -1724,13 +1728,23 @@
 
   <script>
     function syncCounselHeightToLeft() {
+      var MOBILE_BP = 992;
       var left = document.getElementById('left-container');
       var counselSection = document.querySelector('#right-container .counsel-section');
+      var pastWrap = document.querySelector('#right-container .counsel-past-wrap');
+      var chatBox = document.querySelector('#right-container .counsel-chat-box');
+
+      // 모바일 / 태블릿: 인라인 height 제거 후 종료 (미디어쿼리가 담당)
+      if (window.innerWidth <= MOBILE_BP) {
+        if (pastWrap) { pastWrap.style.flex = ''; pastWrap.style.height = ''; }
+        if (chatBox) { chatBox.style.flex = ''; chatBox.style.height = ''; }
+        if (counselSection) { counselSection.style.flex = ''; counselSection.style.height = ''; }
+        return;
+      }
+
       if (!left || left.children.length < 3) return;
       var infoWrap = left.children[1];
       var detailWrap = left.children[2];
-      var pastWrap = document.querySelector('#right-container .counsel-past-wrap');
-      var chatBox = document.querySelector('#right-container .counsel-chat-box');
       var infoH = 0, detailH = 0;
       if (pastWrap && infoWrap) {
         infoH = Math.max(0, Math.round(infoWrap.getBoundingClientRect().height));
