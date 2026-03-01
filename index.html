@@ -1825,37 +1825,27 @@
         });
       }
 
-      var btnAdd = document.getElementById('btn-add-contract');
+      // 참고사항 Tab → 추가 체크박스 / 체크박스 Shift+Tab → 참고사항
+      var chkAddEl = document.getElementById('chk-add-contract');
       var refInput = document.querySelector('.detail-input[data-field="참고사항"]');
-      if (btnAdd && refInput) {
+      if (chkAddEl && refInput) {
         refInput.addEventListener('keydown', function (e) {
           if (e.key === 'Tab' && !e.shiftKey) {
             var modeSel = document.getElementById('detail-mode');
-            if (modeSel && (modeSel.value === '입력' || modeSel.value === '수정') && !btnAdd.disabled) {
+            if (modeSel && (modeSel.value === '입력' || modeSel.value === '수정') && !chkAddEl.disabled) {
               e.preventDefault();
-              btnAdd.focus();
+              chkAddEl.focus();
             }
           }
         });
-        btnAdd.addEventListener('keydown', function (e) {
+        chkAddEl.addEventListener('keydown', function (e) {
           if (e.key === 'Tab' && e.shiftKey) {
             e.preventDefault();
             refInput.focus();
           }
         });
-        btnAdd.addEventListener('click', function () {
-          var row = getDetailFormRow();
-          var kName = row['계약자명'] || '';
-          var pName = row['피보험자'] || '';
-          if (pName && kName !== pName) {
-            var pj = row['피주민번호'] || '';
-            var pc = row['피연락처'] || '';
-            var pw = row['피직업'] || '';
-            var defaultRef = [pName, pj, pc, pw].filter(function (x) { return x; }).join(' - ');
-            if (!refInput.value && defaultRef) refInput.value = defaultRef;
-          }
-        });
       }
+
 
       var kNameInp = document.querySelector('.detail-form [data-field="계약자명"]');
       var pNameInp = document.querySelector('.detail-form [data-field="피보험자"]');
