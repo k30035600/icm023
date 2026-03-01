@@ -7,6 +7,7 @@ import logging
 import os
 import re
 import json
+import shutil
 from datetime import datetime, date
 
 # 204/304 등 정상 요청 로그를 터미널에 찍지 않음 (에러만 출력)
@@ -40,11 +41,20 @@ def normalize_jumin(v):
     return s[:13] if s else ''
 
 def str_to_yyyymmdd(s):
-    """'yy/mm/dd' 또는 'yyyy/mm/dd' 문자열 → YYYYMMDD 정수 (실패 시 None)."""
+    """'yy/mm/dd' 또는 'yyyy/mm/dd', 'yyyy-mm' 문자열 → YYYYMMDD 정수 (실패 시 None)."""
     if not s or not isinstance(s, str):
         return None
     parts = re.sub(r'\D+', ' ', s.strip()).split()
     if len(parts) < 3:
+        if len(parts) == 2:
+            try:
+                y, m = int(parts[0]), int(parts[1])
+                if y < 100:
+                    y += 2000 if y < 50 else 1900
+                if 1 <= m <= 12:
+                    return y * 10000 + m * 100 + 1
+            except (ValueError, TypeError):
+                pass
         return None
     try:
         y, m, d = int(parts[0]), int(parts[1]), int(parts[2])
@@ -275,11 +285,13 @@ def api_get_data(name):
 
     try:
         with excel_lock:
-            wb = openpyxl.load_workbook(file_path, data_only=True)
+            # read_only=True: 스트리밍 방식으로 읽어 비정상 max_row 문제 우회
+            wb = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
             if not wb.sheetnames:
+                wb.close()
                 return jsonify({"headers": [], "rows": []})
             ws = wb[wb.sheetnames[0]]
-            
+
             rows_iter = ws.iter_rows(values_only=True)
             try:
                 header_row = next(rows_iter)
@@ -292,10 +304,12 @@ def api_get_data(name):
                     elif h == 'Q/A': h = '문/답'
                     headers.append(h)
             except StopIteration:
+                wb.close()
                 return jsonify({"headers": [], "rows": []})
 
             data_rows = []
             file_row_index = 0
+            empty_streak = 0
             for row in rows_iter:
                 row_dict = {}
                 is_empty = True
@@ -309,18 +323,24 @@ def api_get_data(name):
                         elif isinstance(val, (int, float)):
                             # 날짜 형식인 일련번호인지 등은 프론트에서 처리하므로 원본을 넘김
                             pass
-                        
+
                         if val is not None and str(val).strip() != '':
                             is_empty = False
                         row_dict[headers[i]] = val
-                
+
                 if not is_empty:
                     # accident 등 데이터 조작에 필요한 엑셀 실제 열 번호 (0-based)
                     row_dict['_fileRowIndex'] = file_row_index
-                
+                    empty_streak = 0
+                else:
+                    empty_streak += 1
+                    if empty_streak > 50:
+                        break  # 연속 빈 행 50개 초과 시 조기 종료
+
                 data_rows.append(row_dict)
                 file_row_index += 1
 
+            wb.close()
             return jsonify({
                 "headers": headers,
                 # 완전 빈 행 걸러내기
@@ -386,7 +406,7 @@ def api_insurance():
         key_name  = (key_raw.get('계약자명') or '').strip()
         key_jumin = normalize_jumin(key_raw.get('주민번호') or key_raw.get('주민등록번호'))
 
-        default_hdrs = ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '월보험료', '납입보험료', '총보험료', '해지환급금', '대출금']
+        default_hdrs = ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '납입보험료', '총납입보험료', '해지환급금', '대출금']
         with excel_lock:
             wb, ws, headers = _load_or_create_wb(INSURANCE_FILE, default_hdrs)
             if '보험종류' in headers and '상품종류' not in headers:
@@ -402,7 +422,10 @@ def api_insurance():
                        normalize_jumin(r.get('주민번호') or r.get('주민등록번호')) == key_jumin
 
             if action == 'delete':
-                _delete_rows_by_key(ws, headers, key_name, key_jumin)
+                if 'fileRowIndex' in data:
+                    ws.delete_rows(2 + int(data['fileRowIndex']), 1)
+                else:
+                    _delete_rows_by_key(ws, headers, key_name, key_jumin)
             elif action == 'update':
                 updated = False
                 for r in range(2, _get_real_max_row(ws) + 1):
@@ -559,6 +582,51 @@ def counsel_append():
         logging.exception("Error in /api/counsel")
         return jsonify({'ok': False, 'error': str(e)}), 500
 
+
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    os._exit(0)
+    return jsonify({'ok': True})
+
+@app.route('/api/backup_restore', methods=['POST'])
+def backup_restore():
+    data = request.get_json(force=True)
+    action = data.get('action')
+    password = data.get('password')
+    files = [
+        'kb023_information.xlsx',
+        'kb023_insurance.xlsx',
+        'kb023_accident.xlsx',
+        'kb023_counsel.xlsx',
+        'kb023_products.xlsx'
+    ]
+    backup_dir = os.path.join(os.path.dirname(__file__), 'backup')
+    try:
+        if action == 'backup' and password == 'backup':
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            with excel_lock:
+                for f in files:
+                    src = os.path.join(os.path.dirname(__file__), f)
+                    if os.path.exists(src):
+                        shutil.copy2(src, os.path.join(backup_dir, f))
+            return jsonify({'ok': True, 'message': '백업이 완료되었습니다.'})
+            
+        elif action == 'restore' and password == 'restore':
+            if not os.path.exists(backup_dir):
+                return jsonify({'ok': False, 'error': '백업 폴더가 없습니다.'})
+            with excel_lock:
+                for f in files:
+                    src = os.path.join(backup_dir, f)
+                    dst = os.path.join(os.path.dirname(__file__), f)
+                    if os.path.exists(src):
+                        shutil.copy2(src, dst)
+            return jsonify({'ok': True, 'message': '복원이 완료되었습니다.'})
+            
+        else:
+            return jsonify({'ok': False, 'error': '패스워드가 틀립니다.'}), 401
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
