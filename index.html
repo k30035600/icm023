@@ -1739,15 +1739,35 @@
 
   <script>
     function syncCounselHeightToLeft() {
-      // height 고정 제거 - 페이지 자연 스크롤 사용
-      // counsel 입력창 너비 CSS 변수만 동기화
+      var left = document.getElementById('left-container');
       var counselSection = document.querySelector('#right-container .counsel-section');
+      if (!left || left.children.length < 3) return;
+
+      // left-container 자식: [0]=h3헤더텍스트, [1]=information table-wrap, [2]=detail form table-wrap, [3]=insurance table-wrap
+      // children은 Element만 카운트 (텍스트 노드 제외)
+      var leftEls = Array.from(left.children); // h3, table-wrap x3
+      // h3 제외하고 첫번째 table-wrap = information, 두번째 = detail form
+      var tableWraps = leftEls.filter(function (el) { return el.classList && el.classList.contains('table-wrap'); });
+      var infoWrap = tableWraps[0]; // information 테이블
+      var detailWrap = tableWraps[1]; // DB고객 세부내용
+
       var pastWrap = document.querySelector('#right-container .counsel-past-wrap');
       var chatBox = document.querySelector('#right-container .counsel-chat-box');
-      // 인라인 height 초기화 (이전 JS가 설정했을 수 있음)
-      if (pastWrap) { pastWrap.style.flex = ''; pastWrap.style.height = ''; }
-      if (chatBox) { chatBox.style.flex = ''; chatBox.style.height = ''; }
-      if (counselSection) { counselSection.style.flex = ''; counselSection.style.height = ''; }
+
+      if (pastWrap && infoWrap) {
+        var infoH = Math.round(infoWrap.getBoundingClientRect().height);
+        pastWrap.style.height = infoH + 'px';
+        pastWrap.style.overflow = 'auto';
+      }
+      if (chatBox && detailWrap) {
+        var detailH = Math.round(detailWrap.getBoundingClientRect().height);
+        chatBox.style.height = detailH + 'px';
+        chatBox.style.overflow = 'hidden';
+      }
+      if (counselSection) {
+        counselSection.style.height = 'auto';
+      }
+
       // 입력창 너비 CSS 변수 업데이트
       var counselInput = document.getElementById('counsel-chat-input');
       if (counselInput && counselSection) {
@@ -1756,6 +1776,7 @@
       }
     }
     window.syncCounselHeightToLeft = syncCounselHeightToLeft;
+
 
     window.addEventListener('DOMContentLoaded', function () {
       syncCounselHeightToLeft();
