@@ -1474,9 +1474,13 @@
       <button type="button" id="btn-backup">백업</button>
       <button type="button" id="btn-restore">복원</button>
     </div>
-    <span class="header-title"><img src=".img/023_logo.png" alt="logo"
+    <span class="header-title">
+      <span style="font-size: 11px; font-weight: normal; margin-right: 15px; color: #666;">(Ver. 1.0) 서버기동: <span
+          id="server-boot-time">...</span></span>
+      <img src=".img/023_logo.png" alt="logo"
         style="height: 24px; vertical-align: middle; margin-right: 8px;" />Insurance Customer Management <img
-        src=".img/023_logo.png" alt="logo" style="height: 24px; vertical-align: middle; margin-left: 8px;" /></span>
+        src=".img/023_logo.png" alt="logo" style="height: 24px; vertical-align: middle; margin-left: 8px;" />
+    </span>
     <div class="header-btns" style="display: flex; align-items: center; gap: 0.5rem;">
       <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
       <select id="info-agree-filter"
@@ -4232,6 +4236,15 @@
           modeSel.value = '입력';
           modeSel.dispatchEvent(new Event('change'));
         }
+
+        // 서버기동 시간 가져오기
+        fetch('/api/status')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var el = document.getElementById('server-boot-time');
+            if (el && data.boot_time) el.textContent = data.boot_time;
+          })
+          .catch(function (e) { console.error('서버 기동 시간을 불러오는 중 오류 발생:', e); });
       });
     })();
   </script>

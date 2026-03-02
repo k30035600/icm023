@@ -8,7 +8,11 @@ import os
 import re
 import json
 import shutil
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
+
+KST = timezone(timedelta(hours=9))
+SERVER_BOOT_TIME = datetime.now(KST).strftime('%Y-%m-%d %H:%M')
+
 
 # 204/304 등 정상 요청 로그를 터미널에 찍지 않음 (에러만 출력)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
@@ -163,6 +167,10 @@ def _build_log_row(headers, row_dict):
 @app.route('/')
 def index():
     return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/api/status')
+def api_status():
+    return jsonify({'boot_time': SERVER_BOOT_TIME})
 
 @app.route('/favicon.ico')
 def favicon():
