@@ -2,7 +2,7 @@
 # https://render.com 에서 GitHub 연동 후 이 파일로 서비스 생성 가능
 services:
   - type: web
-    name: kb023
+    name: icm023
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn -b 0.0.0.0:$PORT app:app

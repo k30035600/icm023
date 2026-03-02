@@ -1,4 +1,4 @@
-# KB023 배포 안내
+# ICM023 배포 안내
 
 ## 요구사항
 - Python 3.9+
@@ -7,7 +7,7 @@
 ## 1. Render.com (무료 티어)
 
 1. [Render](https://render.com) 가입 후 **New → Web Service**
-2. GitHub 저장소 `k30035600/kb023` 연결
+2. GitHub 저장소 `k30035600/icm023` 연결
 3. 설정:
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `gunicorn -b 0.0.0.0:$PORT app:app`
@@ -19,7 +19,7 @@
 ## 2. Railway 배포
 
 ### 전제
-- GitHub에 `k30035600/kb023` 저장소가 푸시된 상태
+- GitHub에 `k30035600/icm023` 저장소가 푸시된 상태
 - 프로젝트 루트에 `Procfile`, `requirements.txt` 있음 (현재 구성됨)
 
 ### 단계
@@ -30,7 +30,7 @@
 2. **새 프로젝트에서 GitHub 배포**
    - **New Project** 클릭.
    - **Deploy from GitHub repo** 선택.
-   - GitHub 권한 허용 후 저장소 목록에서 **kb023** (또는 `k30035600/kb023`) 선택.
+   - GitHub 권한 허용 후 저장소 목록에서 **icm023** (또는 `k30035600/icm023`) 선택.
 
 3. **서비스 설정**
    - 저장소 연결 후 Railway가 자동으로 빌드·배포 시도.
@@ -43,7 +43,7 @@
    - **방법 A** – 서비스가 정상 기동되면, **캔버스의 서비스 카드** 또는 **우측 서비스 패널**에 "Generate domain" / "도메인 생성" 안내가 뜰 수 있음. 그 안내를 따라 **Generate Domain** 실행.
    - **방법 B** – 서비스 클릭 → **Settings** 탭 → 아래로 내려서 **Networking** 섹션 찾기 → **Public Networking** 안에 **Generate Domain** 버튼이 있으면 클릭.
    - **방법 C** – 상단/좌측 메뉴에 **Networking**, **Domains**, **Public URL** 같은 항목이 있으면 들어가서 "Railway-provided domain" 또는 "Generate Domain" 선택.
-   - 생성된 URL(예: `https://kb023-production-xxxx.up.railway.app`)로 접속.
+   - 생성된 URL(예: `https://icm023-production-xxxx.up.railway.app`)로 접속.
    - **Generate Domain이 안 보일 때**: 이 서비스에 **TCP Proxy**가 붙어 있으면 **Generate Domain**이 숨겨질 수 있음. Settings → Networking에서 TCP Proxy가 있으면 삭제(휴지통 아이콘)한 뒤 다시 확인.
 
 5. **재배포**

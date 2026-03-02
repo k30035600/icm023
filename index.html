@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KB 고객관리</title>
+  <title>Insurance Customer Management</title>
   <style>
     * {
       box-sizing: border-box;
@@ -1474,7 +1474,7 @@
       <button type="button" id="btn-backup">백업</button>
       <button type="button" id="btn-restore">복원</button>
     </div>
-    <span class="header-title">KB 고객관리</span>
+    <span class="header-title">Insurance Customer Management</span>
     <div class="header-btns" style="display: flex; align-items: center; gap: 0.5rem;">
       <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
       <select id="info-agree-filter"
@@ -1494,14 +1494,14 @@
           <h4>1. 필요한 파일 및 로드</h4>
           <p>다음 Excel 파일을 앱과 같은 폴더에 두면 페이지 로드 시 자동으로 읽습니다.</p>
           <ul>
-            <li><strong>kb023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송,
+            <li><strong>icm023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송,
               DB종류, 연락처 등이 있으면 화면·필터에 사용됩니다.</li>
-            <li><strong>kb023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로
+            <li><strong>icm023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로
               표시됩니다. 월보험료·납입보험료·총보험료·해지환급금·대출금은 금액(천 단위 콤마)으로 표시됩니다.</li>
-            <li><strong>kb023_accident.xlsx</strong> — 사고/사전교섭 데이터. 계약자명·주민번호로 필터됩니다. accident 모드(입력/수정/삭제)에서 완료 시
+            <li><strong>icm023_accident.xlsx</strong> — 사고/사전교섭 데이터. 계약자명·주민번호로 필터됩니다. accident 모드(입력/수정/삭제)에서 완료 시
               /api/accident로 저장할 수 있습니다.</li>
-            <li><strong>kb023_counsel.xlsx</strong> — 과거 상담 기록. 계약자명·주민번호로 필터되어 counsel 영역에 문/답 형식으로 표시됩니다.</li>
-            <li><strong>kb023_products.xlsx</strong> — 상품 목록. 보험사·상품종류·상품명 등이 있으면 DB고객 세부내용의 상품종류·상품명 드롭다운에 사용됩니다.</li>
+            <li><strong>icm023_counsel.xlsx</strong> — 과거 상담 기록. 계약자명·주민번호로 필터되어 counsel 영역에 문/답 형식으로 표시됩니다.</li>
+            <li><strong>icm023_products.xlsx</strong> — 상품 목록. 보험사·상품종류·상품명 등이 있으면 DB고객 세부내용의 상품종류·상품명 드롭다운에 사용됩니다.</li>
           </ul>
           <p>브라우저 개발자 도구(F12) → 콘솔에서 각 파일 로드 시 컬럼 목록과 "컬럼 없음(매칭안됨)" 경고를 확인할 수 있습니다. 시트 첫 행(헤더)과 코드에서 기대하는 컬럼명이 맞는지
             확인하세요.</p>
@@ -1520,7 +1520,7 @@
             <li><strong>입력</strong>: 폼을 비운 뒤 새로 입력하고 완료 시 저장합니다(백엔드 연동 시).</li>
             <li><strong>수정/삭제</strong>: 선택한 행 데이터를 수정하거나 삭제한 뒤 완료로 반영합니다.</li>
             <li><strong>출력</strong>: 출력을 선택한 뒤 완료를 누르면 선택한 행 기준으로 DB고객
-              세부내용·kb023_insurance·kb023_accident·kb023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및
+              세부내용·icm023_insurance·icm023_accident·icm023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및
                 바닥글</strong> 옵션을 해제하세요.</li>
             <li>배정일자·종료일자·납입만기 입력란에 숫자 6자리(yymmdd) 또는 8자리(yyyymmdd)를 입력한 뒤 포커스를 벗어나면 "yy/mm/dd" 형식으로 자동 변환됩니다.</li>
           </ul>
@@ -1596,7 +1596,7 @@
     <section class="container" id="left-container">
       <h3>information</h3>
       <div class="table-wrap">
-        <div id="info-table" class="placeholder">kb023_information.xlsx 자동 로드됩니다.</div>
+        <div id="info-table" class="placeholder">icm023_information.xlsx 자동 로드됩니다.</div>
       </div>
       <div class="table-wrap">
         <table class="detail-form">
@@ -1972,11 +1972,11 @@
       if (pNameInp) pNameInp.addEventListener('input', updateInsuredSkipState);
     });
     /* xlsx ↔ 테이블 매핑
-     * kb023_information.xlsx → info-table (시트 1:1)
-     * kb023_insurance.xlsx   → insurance-table (시트 헤더 1:1, 계약자별 필터)
-     * kb023_accident.xlsx    → accident-table (시트 컬럼 1:1, 계약자별 필터) + /api/accident 저장
-     * kb023_counsel.xlsx     → 과거 상담(문/답 형식) + 오늘 상담 전송 시 /api/counsel 저장
-     * kb023_products.xlsx    → 상품종류/상품명 드롭다운 (테이블 아님)
+     * icm023_information.xlsx → info-table (시트 1:1)
+     * icm023_insurance.xlsx   → insurance-table (시트 헤더 1:1, 계약자별 필터)
+     * icm023_accident.xlsx    → accident-table (시트 컬럼 1:1, 계약자별 필터) + /api/accident 저장
+     * icm023_counsel.xlsx     → 과거 상담(문/답 형식) + 오늘 상담 전송 시 /api/counsel 저장
+     * icm023_products.xlsx    → 상품종류/상품명 드롭다운 (테이블 아님)
      */
     function formatCellForInfo(cell) {
       if (cell == null || cell === '') return '';
@@ -2023,7 +2023,7 @@
     var INFO_COL_DEFAULT_WEIGHT = 7;
     // information 테이블에 표시할 컬럼만 (순서대로). xlsx에 없으면 해당 컬럼은 제외. (종료일자 -> 종료 변경)
     var INFO_DISPLAY_HEADERS = ['배정일자', '종료', '문자전송', 'DB종류', '계약자명', '피보험자', '주민번호', '연락처', '직업', '피주민번호'];
-    // kb023_information.xlsx → info-table (헤더·행은 시트와 1:1, 종료일자 제외 옵션)
+    // icm023_information.xlsx → info-table (헤더·행은 시트와 1:1, 종료일자 제외 옵션)
     function refreshInfoTableDisplay() {
       var el = document.getElementById('info-table');
       var data = window._infoTableData;
@@ -2224,10 +2224,10 @@
           try {
             renderInfoTable(data);
           } catch (e) {
-            console.error('[KB023] renderInfoTable 오류:', e.message, e.stack);
+            console.error('[ICM023] renderInfoTable 오류:', e.message, e.stack);
           }
         })
-        .catch(function (e) { console.error('[KB023] info fetch 오류:', e); });
+        .catch(function (e) { console.error('[ICM023] info fetch 오류:', e); });
     }
     tryAutoLoadInfo();
 
@@ -2273,7 +2273,7 @@
     }
     tryAutoLoadCounsel();
 
-    // kb023_insurance.xlsx → insurance-table (시트 헤더와 1:1)
+    // icm023_insurance.xlsx → insurance-table (시트 헤더와 1:1)
     var INSURANCE_AMOUNT_KEYS = { '납입보험료': 1, '총납입보험료': 1, '해지환급금': 1, '대출금': 1 };
     function formatInsuranceCell(val, key) {
       if (val == null || val === '') return '';
@@ -2379,7 +2379,7 @@
       var s = Math.round(((t * 24 - h) * 60 - m) * 60);
       return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
-    // kb023_accident.xlsx → accident-table (시트 헤더·행 1:1)
+    // icm023_accident.xlsx → accident-table (시트 헤더·행 1:1)
     function formatAccidentCell(row, key) {
       var cell = row[key] != null ? row[key] : '';
       if (key === '문/답' || key === 'Q/A') return (cell != null ? String(cell) : '').replace(/</g, '&lt;');
@@ -2572,10 +2572,10 @@
       el.innerHTML = html || '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
     }
     window.updateCounselPastChat = updateCounselPastChat;
-    // kb023_products.xlsx 로드 (보험사 kblife 기준 상품종류/상품명 드롭다운)
+    // icm023_products.xlsx 로드 (보험사 kblife 기준 상품종류/상품명 드롭다운)
     window._productsData = null;
     function tryAutoLoadProducts() {
-      fetch('kb023_products.xlsx')
+      fetch('icm023_products.xlsx')
         .then(function (r) { return r.arrayBuffer(); })
         .then(function (ab) {
           var wb = XLSX.read(ab, { type: 'array' });
@@ -3612,7 +3612,7 @@
                 }
                 return;
               }
-              if (!window.confirm('해당 행을 kb023_accident.xlsx에서 삭제합니다.')) return;
+              if (!window.confirm('해당 행을 icm023_accident.xlsx에서 삭제합니다.')) return;
               fetch('/api/accident', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3795,7 +3795,7 @@
         var inner = document.getElementById('assign-table-inner');
         if (!rows.length) {
           inner.className = 'placeholder';
-          inner.innerHTML = 'information 데이터가 없습니다. kb023_information.xlsx를 먼저 로드하세요.';
+          inner.innerHTML = 'information 데이터가 없습니다. icm023_information.xlsx를 먼저 로드하세요.';
         } else {
           inner.className = '';
           var html = '<table class="assign-print-table"><colgroup>';
@@ -3931,7 +3931,7 @@
       function counselTodayStorageKey() {
         var d = new Date();
         var yMD = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-        return 'kb023_counsel_' + yMD + '_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || '');
+        return 'icm023_counsel_' + yMD + '_' + (currentNameKey || '').replace(/\s/g, '_') + '_' + (currentJuminKey || '');
       }
       function loadQaFromStorage() {
         try {

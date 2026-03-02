@@ -1,4 +1,4 @@
-# KB023 Flask 서버 실행 (가상환경 생성 + 의존성 설치 + 서버 기동)
+# ICM023 Flask 서버 실행 (가상환경 생성 + 의존성 설치 + 서버 기동)
 # PowerShell에서: .\run.ps1
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

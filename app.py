@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-KB023 고객관리 - Flask 서버
+ICM023 고객관리 - Flask 서버
 information/insurance/accident/counsel xlsx CRUD 및 accident/counsel 추가 저장.
 """
 import logging
@@ -25,10 +25,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_DIR = os.path.join(BASE_DIR, '.source')
 os.makedirs(SOURCE_DIR, exist_ok=True)
 
-INFORMATION_FILE = os.path.join(SOURCE_DIR, 'kb023_information.xlsx')
-INSURANCE_FILE   = os.path.join(SOURCE_DIR, 'kb023_insurance.xlsx')
-ACCIDENT_FILE    = os.path.join(SOURCE_DIR, 'kb023_accident.xlsx')
-COUNSEL_FILE     = os.path.join(SOURCE_DIR, 'kb023_counsel.xlsx')
+INFORMATION_FILE = os.path.join(SOURCE_DIR, 'icm023_information.xlsx')
+INSURANCE_FILE   = os.path.join(SOURCE_DIR, 'icm023_insurance.xlsx')
+ACCIDENT_FILE    = os.path.join(SOURCE_DIR, 'icm023_accident.xlsx')
+COUNSEL_FILE     = os.path.join(SOURCE_DIR, 'icm023_counsel.xlsx')
 
 # ---------------------------------------------------------------------------
 # 유틸리티
@@ -200,11 +200,11 @@ def api_backup_restore():
         return jsonify({"error": "패스워드가 일치하지 않습니다."}), 403
 
     files_map = {
-        'kb023_products': os.path.join(SOURCE_DIR, 'kb023_products.xlsx'),
-        'kb023_information': INFORMATION_FILE,
-        'kb023_insurance': INSURANCE_FILE,
-        'kb023_accident': ACCIDENT_FILE,
-        'kb023_counsel': COUNSEL_FILE
+        'icm023_products': os.path.join(SOURCE_DIR, 'icm023_products.xlsx'),
+        'icm023_information': INFORMATION_FILE,
+        'icm023_insurance': INSURANCE_FILE,
+        'icm023_accident': ACCIDENT_FILE,
+        'icm023_counsel': COUNSEL_FILE
     }
 
     try:
@@ -277,7 +277,7 @@ def api_get_data(name):
         'insurance': INSURANCE_FILE,
         'accident': ACCIDENT_FILE,
         'counsel': COUNSEL_FILE,
-        'products': os.path.join(SOURCE_DIR, 'kb023_products.xlsx')
+        'products': os.path.join(SOURCE_DIR, 'icm023_products.xlsx')
     }
     file_path = file_map.get(name)
     if not file_path:
