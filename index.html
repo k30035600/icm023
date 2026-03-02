@@ -1474,7 +1474,9 @@
       <button type="button" id="btn-backup">백업</button>
       <button type="button" id="btn-restore">복원</button>
     </div>
-    <span class="header-title">Insurance Customer Management</span>
+    <span class="header-title"><img src=".img/023_logo.png" alt="logo"
+        style="height: 24px; vertical-align: middle; margin-right: 8px;" />Insurance Customer Management <img
+        src=".img/023_logo.png" alt="logo" style="height: 24px; vertical-align: middle; margin-left: 8px;" /></span>
     <div class="header-btns" style="display: flex; align-items: center; gap: 0.5rem;">
       <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
       <select id="info-agree-filter"
@@ -1494,7 +1496,8 @@
           <h4>1. 필요한 파일 및 로드</h4>
           <p>다음 Excel 파일을 앱과 같은 폴더에 두면 페이지 로드 시 자동으로 읽습니다.</p>
           <ul>
-            <li><strong>icm023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자, 문자전송,
+            <li><strong>icm023_information.xlsx</strong> — 계약자 목록. 첫 행은 헤더, 그 다음 행부터 데이터입니다. 계약자명, 주민번호, 배정일자·종료일자,
+              문자전송,
               DB종류, 연락처 등이 있으면 화면·필터에 사용됩니다.</li>
             <li><strong>icm023_insurance.xlsx</strong> — 보험 데이터. 계약자명·주민번호로 information과 매칭됩니다. 컬럼명 "보험종류"는 화면에서 "상품종류"로
               표시됩니다. 월보험료·납입보험료·총보험료·해지환급금·대출금은 금액(천 단위 콤마)으로 표시됩니다.</li>
@@ -1520,7 +1523,8 @@
             <li><strong>입력</strong>: 폼을 비운 뒤 새로 입력하고 완료 시 저장합니다(백엔드 연동 시).</li>
             <li><strong>수정/삭제</strong>: 선택한 행 데이터를 수정하거나 삭제한 뒤 완료로 반영합니다.</li>
             <li><strong>출력</strong>: 출력을 선택한 뒤 완료를 누르면 선택한 행 기준으로 DB고객
-              세부내용·icm023_insurance·icm023_accident·icm023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글 및
+              세부내용·icm023_insurance·icm023_accident·icm023_counsel을 A4로 인쇄합니다. 페이지의 머리글/바닥글을 제거하려면 인쇄 대화상자에서 <strong>머리글
+                및
                 바닥글</strong> 옵션을 해제하세요.</li>
             <li>배정일자·종료일자·납입만기 입력란에 숫자 6자리(yymmdd) 또는 8자리(yyyymmdd)를 입력한 뒤 포커스를 벗어나면 "yy/mm/dd" 형식으로 자동 변환됩니다.</li>
           </ul>
