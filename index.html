@@ -2919,10 +2919,10 @@
         function cleanup() {
           document.body.classList.remove('print-output');
           if (printEl) printEl.innerHTML = '';
-          if (modeSel) modeSel.value = '조회';
-          setCompleteBtnEnabled('조회');
-          setDetailFormSectionsEnabled(false);
           window.removeEventListener('afterprint', cleanup);
+          // 출력 완료 후 모든 테이블 다시 그리기
+          if (typeof done === 'function') done(false);
+          else if (typeof refreshInfoTableDisplay === 'function') refreshInfoTableDisplay();
         }
         window.addEventListener('afterprint', cleanup);
         window.print();
