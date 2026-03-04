@@ -174,7 +174,9 @@
 
     /* table-wrap: 명시적 높이로 내부 스크롤 */
     .table-wrap {
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: scroll;
+      /* 스크롤바 영역을 항상 확보하여 너비 일관성 유지 */
       background: #fff;
       border: 1px solid #e0e0e0;
       border-radius: 4px;
@@ -2085,20 +2087,22 @@
           return v === '비동의' || v === '부동의';
         });
       }
-      var displayIndices = [];
-      var displayHeaders = [];
-      INFO_DISPLAY_HEADERS.forEach(function (name) {
-        var searchName = name === '종료' ? '종료일자' : name; // 엑셀에서는 '종료일자'로 찾고 출력만 '종료'로 함
+      // 너비 비율(Weight) 및 헤더별 인덱스 준비
+      var displayHeaders = INFO_DISPLAY_HEADERS;
+      var weights = displayHeaders.map(function (h) { return INFO_COL_WEIGHTS[h] != null ? INFO_COL_WEIGHTS[h] : INFO_COL_DEFAULT_WEIGHT; });
+      var totalWeightSum = weights.reduce(function (a, b) { return a + b; }, 0);
+      var aligns = displayHeaders.map(function (h) { return (INFO_COL_ALIGN && INFO_COL_ALIGN[h]) || 'left'; });
+
+      var displayIndices = displayHeaders.map(function (name) {
+        var searchName = name === '종료' ? '종료일자' : name;
         var idx = headers.indexOf(searchName);
         if (searchName === '주민번호' && idx === -1) idx = headers.indexOf('주민등록번호');
-        if (idx !== -1) { displayIndices.push(idx); displayHeaders.push(name); }
+        return idx;
       });
-      var weights = displayHeaders.map(function (h) { return INFO_COL_WEIGHTS[h] != null ? INFO_COL_WEIGHTS[h] : INFO_COL_DEFAULT_WEIGHT; });
-      var sum = weights.reduce(function (a, b) { return a + b; }, 0);
-      var aligns = displayHeaders.map(function (h) { return (INFO_COL_ALIGN && INFO_COL_ALIGN[h]) || 'left'; });
+
       var html = '<table><colgroup>';
       displayHeaders.forEach(function (h, i) {
-        var pct = sum > 0 ? ((weights[i] / sum) * 100).toFixed(2) + '%' : (displayHeaders.length ? (100 / displayHeaders.length).toFixed(2) + '%' : '100%');
+        var pct = totalWeightSum > 0 ? ((weights[i] / totalWeightSum) * 100).toFixed(2) + '%' : '10%';
         html += '<col style="width:' + pct + '">';
       });
       html += '</colgroup><thead><tr>';
@@ -2107,41 +2111,35 @@
         html += '<th style="text-align:' + align + '">' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
       });
       html += '</tr></thead><tbody>';
-      indices.forEach(function (rowIndex) {
-        var row = rows[rowIndex];
-        var isSelected = (rowIndex === window._selectedInfoRowIndex);
+
+      indices.forEach(function (actualRowIdx) {
+        var rowArr = rows[actualRowIdx];
+        var isSelected = (actualRowIdx === window._selectedInfoRowIndex);
         var clsStr = isSelected ? ' class="row-selected"' : '';
-        html += '<tr data-row-index="' + rowIndex + '"' + clsStr + '>';
-        var rowName = (row[headers.indexOf('계약자명')] != null ? String(row[headers.indexOf('계약자명')]) : '').trim();
-        var rowPName = (row[headers.indexOf('피보험자')] != null ? String(row[headers.indexOf('피보험자')]) : '').trim();
-        var isSamePerson = rowName !== '' && rowName === rowPName;
-        displayIndices.forEach(function (colIdx, i) {
-          var cell = row[colIdx];
-          var headerName = displayHeaders[i];
+        html += '<tr data-row-index="' + actualRowIdx + '"' + clsStr + '>';
+
+        displayHeaders.forEach(function (name, i) {
+          var colIdx = displayIndices[i];
+          var cell = (colIdx !== -1) ? rowArr[colIdx] : '';
           var text = '';
 
-          if (isSamePerson && (headerName === '피보험자' || headerName === '피주민번호' || headerName === '피연락처' || headerName === '피직업')) {
-            text = '';
-          } else if (cell != null && cell !== '') {
-            if (headerName === '주민번호' || headerName === '주민등록번호' || headerName === '피주민번호') {
+          if (cell != null && cell !== '') {
+            if (name === '주민번호' || name === '주민등록번호' || name === '피주민번호') {
               var raw = normalizeJumin(cell);
               text = raw.length > 6 ? raw.slice(0, 6) + '-' + raw.slice(6, 13) : raw;
-            } else if (headerName === '연락처' || headerName === '피연락처') {
+            } else if (name === '연락처' || name === '피연락처') {
               var cval = String(cell).replace(/\D/g, '');
               if (cval.length < 4) text = cval;
               else if (cval.length < 8) text = cval.slice(0, 3) + '-' + cval.slice(3);
               else text = cval.slice(0, 3) + '-' + cval.slice(3, 7) + '-' + cval.slice(7, 11);
-            } else if (headerName === '종료') {
-              // 종료 컬럼은 yy/mm 고정 포맷
-              if (cell instanceof Date) {
-                text = String(cell.getFullYear()).slice(-2) + '/' + String(cell.getMonth() + 1).padStart(2, '0');
-              } else {
-                var ms = String(cell).match(/^(\d{4})[-/](\d{1,2})/);
-                if (ms) text = ms[1].slice(-2) + '/' + ms[2].padStart(2, '0');
-                else text = formatCellForInfo(cell);
-              }
+            } else if (name === '종료') {
+              var ms = String(cell).match(/^(\d{4})[-/](\d{1,2})/);
+              if (ms) text = ms[1].slice(-2) + '/' + ms[2].padStart(2, '0');
+              else if (typeof cell === 'number' && cell > 40000) {
+                try { var d = XLSX.SSF.parse_date_code(cell); text = String(d.y).slice(-2) + '/' + String(d.m).padStart(2, '0'); } catch (e) { text = String(cell); }
+              } else text = String(cell);
             } else {
-              text = formatCellForInfo(cell);
+              text = String(cell).replace(/</g, '&lt;');
             }
           }
           var align = aligns[i] || 'left';
