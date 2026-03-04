@@ -1,20 +1,22 @@
-# ICM023 Flask 서버 실행 (가상환경 생성 + 의존성 설치 + 서버 기동)
+﻿# ICM023 Flask 서버 실행 (가상환경 생성 + 의존성 설치 + 서버 기동)
 # PowerShell에서: .\run.ps1
 $ErrorActionPreference = "Stop"
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Set-Location $PSScriptRoot
 
 $pythonExe = $null
-foreach ($name in @('python', 'py')) {
+foreach ($name in @('py', 'python')) {
     $c = Get-Command $name -ErrorAction SilentlyContinue
     if ($c) { $pythonExe = $c.Source; break }
 }
 if (-not $pythonExe) {
     $paths = @(
+        "$env:SystemDrive\Python315\python.exe",
+        "$env:SystemDrive\Python314\python.exe",
+        "$env:SystemDrive\Python313\python.exe",
+        "$env:LocalAppData\Programs\Python\Python315\python.exe",
         "$env:LocalAppData\Programs\Python\Python314\python.exe",
-        "$env:LocalAppData\Programs\Python\Python313\python.exe",
-        "$env:LocalAppData\Programs\Python\Python312\python.exe",
-        "${env:ProgramFiles}\Python314\python.exe",
-        "${env:ProgramFiles}\Python313\python.exe"
+        "$env:LocalAppData\Programs\Python\Python313\python.exe"
     )
     foreach ($p in $paths) {
         if (Test-Path $p) { $pythonExe = $p; break }

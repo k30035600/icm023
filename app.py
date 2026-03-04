@@ -19,7 +19,9 @@ logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 import traceback
 import threading
-from flask import Flask, request, jsonify, send_from_directory
+import io
+import zipfile
+from flask import Flask, request, jsonify, send_from_directory, send_file
 import openpyxl
 
 excel_lock = threading.Lock()
@@ -198,13 +200,19 @@ def api_backup_restore():
     backup: 현재 xlsx 파일들을 .source 폴더의 json 파일로 저장 (백업)
     restore: .source 폴더의 json 파일들로 현재 xlsx 파일을 덮어쓰기 (복원)
     """
-    req = request.get_json(force=True) or {}
-    pwd = req.get('password', '')
-    action = req.get('action')
+    if request.mimetype == 'multipart/form-data':
+        pwd = request.form.get('password', '')
+        action = request.form.get('action')
+        file = request.files.get('file')
+    else:
+        req = request.get_json(force=True) or {}
+        pwd = req.get('password', '')
+        action = req.get('action')
+        file = None
 
-    if action == 'backup' and pwd != 'xlsx2json':
+    if action == 'backup' and pwd != 'backup':
         return jsonify({"error": "패스워드가 일치하지 않습니다."}), 403
-    elif action == 'restore' and pwd != 'json2xlsx':
+    elif action == 'restore' and pwd != 'restore':
         return jsonify({"error": "패스워드가 일치하지 않습니다."}), 403
 
     files_map = {
@@ -218,55 +226,35 @@ def api_backup_restore():
     try:
         with excel_lock:
             if action == 'backup':
-                # xlsx -> json in .source
-                for name, xlsx_path in files_map.items():
-                    json_path = os.path.join(SOURCE_DIR, name + '.json')
-                    if os.path.isfile(xlsx_path):
-                        wb = openpyxl.load_workbook(xlsx_path, data_only=True)
-                        if not wb.sheetnames:
-                            continue
-                        ws = wb[wb.sheetnames[0]]
-                        rows = []
-                        for row in ws.iter_rows(values_only=True):
-                            row_vals = []
-                            for cell in row:
-                                if isinstance(cell, (datetime, date)):
-                                    row_vals.append(cell.isoformat())
-                                else:
-                                    row_vals.append(cell)
-                            rows.append(row_vals)
-                        with open(json_path, 'w', encoding='utf-8') as f:
-                            json.dump(rows, f, ensure_ascii=False)
-                return jsonify({"ok": True, "message": "백업(xlsx -> json)이 완료되었습니다."})
+                memory_file = io.BytesIO()
+                with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+                    for name, xlsx_path in files_map.items():
+                        if os.path.isfile(xlsx_path):
+                            zf.write(xlsx_path, os.path.basename(xlsx_path))
+                memory_file.seek(0)
+                return send_file(
+                    memory_file,
+                    download_name='backup.zip',
+                    as_attachment=True,
+                    mimetype='application/zip'
+                )
 
             elif action == 'restore':
-                # json in .source -> xlsx
-                for name, xlsx_path in files_map.items():
-                    json_path = os.path.join(SOURCE_DIR, name + '.json')
-                    if os.path.isfile(json_path):
-                        with open(json_path, 'r', encoding='utf-8') as f:
-                            rows = json.load(f)
-                        wb = openpyxl.Workbook()
-                        ws = wb.active
-                        ws.title = "Sheet1"
-                        for row in rows:
-                            new_row = []
-                            for cell in row:
-                                if isinstance(cell, str) and len(cell) >= 10:
-                                    if re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}', cell):
-                                        try:
-                                            new_row.append(datetime.fromisoformat(cell))
-                                            continue
-                                        except (ValueError, AttributeError): pass
-                                    elif re.match(r'^\d{4}-\d{2}-\d{2}$', cell):
-                                        try:
-                                            new_row.append(date.fromisoformat(cell))
-                                            continue
-                                        except (ValueError, AttributeError): pass
-                                new_row.append(cell)
-                            ws.append(new_row)
-                        wb.save(xlsx_path)
-                return jsonify({"ok": True, "message": "복원(json -> xlsx)이 완료되었습니다."})
+                if not file or not file.filename.endswith('.zip'):
+                    return jsonify({"error": "ZIP 백업 파일이 제공되지 않았거나 형식이 잘못되었습니다."}), 400
+                
+                try:
+                    with zipfile.ZipFile(file, 'r') as zf:
+                        for info in zf.infolist():
+                            fname = os.path.basename(info.filename)
+                            for name, xlsx_path in files_map.items():
+                                if fname == os.path.basename(xlsx_path):
+                                    with open(xlsx_path, 'wb') as f:
+                                        f.write(zf.read(info.filename))
+                                    break
+                    return jsonify({"ok": True, "message": "압축 파일 복원이 성공적으로 완료되었습니다."})
+                except zipfile.BadZipFile:
+                    return jsonify({"error": "유효한 ZIP 압축 파일이 아닙니다."}), 400
             else:
                 return jsonify({"error": "알 수 없는 작업입니다."}), 400
     except Exception as e:
