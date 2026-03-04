@@ -2210,6 +2210,8 @@
               if (cval.length < 4) text = cval;
               else if (cval.length < 8) text = cval.slice(0, 3) + '-' + cval.slice(3);
               else text = cval.slice(0, 3) + '-' + cval.slice(3, 7) + '-' + cval.slice(7, 11);
+            } else if (name === '배정일자') {
+              text = toYYMMDD(cell);
             } else if (name === '종료') {
               var ms = String(cell).match(/^(\d{4})[-/](\d{1,2})/);
               if (ms) text = ms[1].slice(-2) + '/' + ms[2].padStart(2, '0');
@@ -2257,7 +2259,9 @@
       var headers = data.headers;
       // rows가 객체 배열이므로 배열의 배열로 변환하여 기존 함수 호환성 유지
       var rows = data.rows.map(function (rowDict) {
-        return headers.map(function (h) { return rowDict[h] != null ? rowDict[h] : ''; });
+        var arr = headers.map(function (h) { return rowDict[h] != null ? rowDict[h] : ''; });
+        arr._fileRowIndex = rowDict._fileRowIndex;
+        return arr;
       });
       debugXlsxColumns('information', headers, ['계약자명', '주민번호', '배정일자', '문자전송', 'DB종류', '연락처']);
       window._infoTableData = { headers: headers, rows: rows };
@@ -3022,7 +3026,11 @@
             }
             var rowIndex = window._selectedInfoRowIndex;
             if (rowIndex == null) { fail('삭제할 행을 선택해 주세요.'); return; }
-            run('/api/information', { action: 'delete', rowIndex: rowIndex })
+            var infoData = window._infoTableData.rows[rowIndex];
+            var fIdx = infoData ? infoData._fileRowIndex : null;
+            if (fIdx == null) { fail('파일 인덱스 오류'); return; }
+
+            run('/api/information', { action: 'delete', rowIndex: fIdx })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'delete', key: key }); })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/counsel', { action: 'delete', key: key }); })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/accident', { action: 'delete', key: key }); })
@@ -3031,13 +3039,17 @@
           } else if (mode === '수정') {
             var rowIndex = window._selectedInfoRowIndex;
             if (rowIndex == null) { fail('수정할 행을 선택해 주세요.'); return; }
+            var infoData = window._infoTableData.rows[rowIndex];
+            var fIdx = infoData ? infoData._fileRowIndex : null;
+            if (fIdx == null) { fail('파일 인덱스 오류'); return; }
+
             var infoRow = {};
             infoHeaders.forEach(function (h) {
               var v = row[h];
               if (v == null || v === '') v = (h === '주민번호') ? key.주민번호 : '';
               infoRow[h] = v;
             });
-            run('/api/information', { action: 'update', rowIndex: rowIndex, row: infoRow })
+            run('/api/information', { action: 'update', rowIndex: fIdx, row: infoRow })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'update', key: key, row: rowForInsurance }); })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(false); })
               .catch(function (e) { fail(e && e.message); });
