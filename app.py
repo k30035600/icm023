@@ -371,6 +371,13 @@ def api_information():
             row_index = data.get('rowIndex')
             row_dict  = data.get('row') or {}
 
+            ky_name = str(row_dict.get('계약자명') or '').strip()
+            pi_name = str(row_dict.get('피보험자명') or '').strip()
+            if ky_name and ky_name == pi_name:
+                row_dict['피주민번호'] = ''
+                row_dict['피연락처'] = ''
+                row_dict['피직업'] = ''
+
             if action == 'delete':
                 if row_index is None:
                     return jsonify({'ok': False, 'error': '삭제 시 rowIndex 필요'}), 400
