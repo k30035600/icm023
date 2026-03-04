@@ -133,6 +133,11 @@ def _get_real_max_row(ws):
                 break
     return real_max
 
+def _append_to_ws(ws, row_values):
+    real_max = _get_real_max_row(ws)
+    for c, val in enumerate(row_values, 1):
+        ws.cell(row=real_max + 1, column=c, value=val)
+
 def _delete_rows_by_key(ws, headers, key_name, key_jumin):
     """ws에서 계약자명+주민번호가 일치하는 행을 모두 삭제. 삭제 건수 반환."""
     name_col = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
@@ -382,7 +387,7 @@ def api_information():
                 for col, h in enumerate(headers, 1):
                     ws.cell(row=excel_row, column=col, value=_date_value_for_sheet(h, row_dict.get(h, '')))
             else:
-                ws.append([_date_value_for_sheet(h, row_dict.get(h, '')) for h in headers])
+                _append_to_ws(ws, [_date_value_for_sheet(h, row_dict.get(h, '')) for h in headers])
 
             wb.save(INFORMATION_FILE)
             wb.close()
@@ -436,9 +441,9 @@ def api_insurance():
                         updated = True
                         break
                 if not updated:
-                    ws.append(_make_row(row_dict))
+                    _append_to_ws(ws, _make_row(row_dict))
             else:
-                ws.append(_make_row(row_dict))
+                _append_to_ws(ws, _make_row(row_dict))
 
             wb.save(INSURANCE_FILE)
             wb.close()
@@ -531,7 +536,7 @@ def accident_append():
                 row_dict = dict(row_dict)
                 if '입력일자' in headers and (row_dict.get('입력일자') is None or row_dict.get('입력일자') == ''):
                     row_dict['입력일자'] = today_serial
-                ws.append(_build_log_row(headers, row_dict))
+                _append_to_ws(ws, _build_log_row(headers, row_dict))
             wb.save(ACCIDENT_FILE)
             wb.close()
         return jsonify({'ok': True, 'appended': len(rows_to_append)})
@@ -574,7 +579,7 @@ def counsel_append():
         with excel_lock:
             wb, ws, _ = _load_or_create_wb(COUNSEL_FILE, headers, sheet_title='counsel')
             for row_dict in rows_to_append:
-                ws.append(_build_log_row(headers, row_dict))
+                _append_to_ws(ws, _build_log_row(headers, row_dict))
             wb.save(COUNSEL_FILE)
             wb.close()
         return jsonify({'ok': True, 'appended': len(rows_to_append)})
