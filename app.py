@@ -86,23 +86,36 @@ def yyyymmdd_to_excel_date(n):
         return None
 
 def _date_value_for_sheet(h, v):
-    """배정일자·종료일자·납입만기 문자열을 Excel 날짜 시리얼로 변환."""
+    """배정일자·종료일자 문자열을 Excel 날짜 시리벌로 변환 (납입만기 등은 문자열 일관성 위해 제외)."""
     if v is None or v == '':
         return ''
-    if h in ('배정일자', '종료일자', '납입만기') and isinstance(v, str):
+    # 납입만기는 20/34/12 처럼 일반 날짜 형식이 아닐 수 있어 문자열로 유지
+    if h in ('배정일자', '종료일자') and isinstance(v, str):
         n = str_to_yyyymmdd(v)
         if n is not None:
             serial = yyyymmdd_to_excel_date(n)
             return serial if serial is not None else v
     return v
 
-def _amount_to_number(v):
-    """'1,234' 형태의 금액 문자열을 float으로 변환. 변환 불가 시 원값 반환."""
-    if isinstance(v, str) and re.match(r'^[\d,]+$', v):
+def _amount_to_number(h, v):
+    """지정된 금액 컬럼들('' 입력 시 0 저장)과 숫자 변환 처리."""
+    amt_cols = ('납입보험료', '총납입보험료', '해지환급금', '대출금')
+    if h in amt_cols:
+        if v is None or str(v).strip() == '':
+            return 0
+        if isinstance(v, str):
+            clean_v = v.replace(',', '').strip()
+            if re.match(r'^-?\d+(\.\d+)?$', clean_v):
+                try:
+                    return float(clean_v)
+                except ValueError: pass
+        return v
+    
+    # 그 외 일반 컬럼에서 숫자 형태면 변환 (기존 로직 유지)
+    if isinstance(v, str) and re.match(r'^\d+$', v):
         try:
-            return float(v.replace(',', ''))
-        except ValueError:
-            pass
+            return float(v)
+        except ValueError: pass
     return v
 
 def _load_or_create_wb(file_path, default_headers, sheet_title='Sheet1'):
@@ -365,24 +378,24 @@ def api_information():
         if action not in ('insert', 'update', 'delete'):
             return jsonify({'ok': False, 'error': 'action은 insert/update/delete 중 하나여야 합니다.'}), 400
 
-        default_hdrs = data.get('headers') or ['계약자명', '주민번호', '배정일자', '종료일자', '문자전송', 'DB종류', '연락처']
+        default_hdrs = ['배정일자', '종료일자', '문자전송', 'DB종류', '가능상품', '타겟상품', '계약자명', '주민번호', '연락처', '직업', '주소', '피보험자', '피주민번호', '피연락처', '피직업']
         with excel_lock:
             wb, ws, headers = _load_or_create_wb(INFORMATION_FILE, default_hdrs)
             row_index = data.get('rowIndex')
             row_dict  = data.get('row') or {}
 
             ky_name = str(row_dict.get('계약자명') or '').strip()
-            pi_name = str(row_dict.get('피보험자명') or '').strip()
+            pi_name = str(row_dict.get('피보험자') or row_dict.get('피보험자명') or '').strip()
             if ky_name and ky_name == pi_name:
                 row_dict['피주민번호'] = ''
                 row_dict['피연락처'] = ''
                 row_dict['피직업'] = ''
 
-            # 중복 체크 (계약자명 + 주민번호 + 피보험자명)
+            # 중복 체크 (계약자명 + 주민번호 + 피보험자)
             if action in ('insert', 'update'):
                 name_idx = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
                 jumin_idx = next((i for i, h in enumerate(headers) if h == '주민번호'), None)
-                pi_idx = next((i for i, h in enumerate(headers) if h == '피보험자명'), None)
+                pi_idx = next((i for i, h in enumerate(headers) if h in ('피보험자', '피보험자명')), None)
                 if name_idx is not None and jumin_idx is not None and pi_idx is not None:
                     check_name = ky_name
                     check_jumin = normalize_jumin(row_dict.get('주민번호'))
@@ -398,6 +411,12 @@ def api_information():
                             msg = f'이미 등록된 계약입니다. ({check_name} / {row_dict.get("주민번호")} / 피:{check_pi})'
                             return jsonify({'ok': False, 'error': msg}), 400
 
+            def _get_info_val(h, src):
+                v = src.get(h, '')
+                if h == '직업' and v == '': v = src.get(' 직업', '')
+                if h == '피보험자' and v == '': v = src.get('피보험자명', '')
+                return v
+
             if action == 'delete':
                 if row_index is None:
                     return jsonify({'ok': False, 'error': '삭제 시 rowIndex 필요'}), 400
@@ -412,9 +431,9 @@ def api_information():
                 if excel_row < 2 or excel_row > _get_real_max_row(ws):
                     return jsonify({'ok': False, 'error': '유효하지 않은 행'}), 400
                 for col, h in enumerate(headers, 1):
-                    ws.cell(row=excel_row, column=col, value=_date_value_for_sheet(h, row_dict.get(h, '')))
+                    ws.cell(row=excel_row, column=col, value=_amount_to_number(h, _date_value_for_sheet(h, _get_info_val(h, row_dict))))
             else:
-                _append_to_ws(ws, [_date_value_for_sheet(h, row_dict.get(h, '')) for h in headers])
+                _append_to_ws(ws, [_amount_to_number(h, _date_value_for_sheet(h, _get_info_val(h, row_dict))) for h in headers])
 
             wb.save(INFORMATION_FILE)
             wb.close()
@@ -437,7 +456,7 @@ def api_insurance():
         key_name  = (key_raw.get('계약자명') or '').strip()
         key_jumin = normalize_jumin(key_raw.get('주민번호') or key_raw.get('주민등록번호'))
 
-        default_hdrs = ['계약자명', '주민번호', '상품종류', '상품명', '증권번호', '납입만기', '납입보험료', '총납입보험료', '해지환급금', '대출금']
+        default_hdrs = ['계약자명', '주민번호', '피보험자', '(피)주민번호', '상품종류', '상품명', '증권번호', '납입만기', '주요담보', '납입보험료', '납입방법', '총납입보험료', '해지환급금', '대출금', '참고사항']
         with excel_lock:
             wb, ws, headers = _load_or_create_wb(INSURANCE_FILE, default_hdrs)
             if '보험종류' in headers and '상품종류' not in headers:
@@ -445,8 +464,18 @@ def api_insurance():
 
             row_dict = data.get('row') or {}
 
+            def _get_insurance_val(src, h):
+                # 프론트엔드는 '(피)주민번호'를 '피주민번호'로 보낼 수 있음
+                if h == '(피)주민번호':
+                    v = src.get(h) or src.get('피주민번호', '') 
+                    return v
+                v = src.get(h, '')
+                if h == '상품종류' and v == '': v = src.get('보험종류', '')
+                if h == '피보험자' and v == '': v = src.get('피보험자명', '') # 피보험자 필드 누락 방지
+                return v
+
             def _make_row(src):
-                return [_amount_to_number(_date_value_for_sheet(h, src.get(h, '') or (src.get('상품종류', '') if h == '보험종류' else ''))) for h in headers]
+                return [_amount_to_number(h, _date_value_for_sheet(h, _get_insurance_val(src, h))) for h in headers]
 
             def row_matches(r):
                 return str(r.get('계약자명') or '').strip() == key_name and \
@@ -482,9 +511,17 @@ def api_insurance():
                 for r in range(2, _get_real_max_row(ws) + 1):
                     row_obj = {h: ws.cell(row=r, column=c).value for c, h in enumerate(headers, 1)}
                     if row_matches(row_obj):
-                        merged = {h: row_dict.get(h, row_obj.get(h, '')) for h in headers}
+                        # src는 row_dict (프론트 데이터)
+                        merged = {}
+                        for h in headers:
+                            v = _get_insurance_val(row_dict, h)
+                            if v == '': # 프론트에서 안 보냈거나 빈값이면 기존값 유지
+                                merged[h] = row_obj.get(h, '')
+                            else:
+                                merged[h] = v
+                                
                         for c, h in enumerate(headers, 1):
-                            ws.cell(row=r, column=c, value=_amount_to_number(_date_value_for_sheet(h, merged[h])))
+                            ws.cell(row=r, column=c, value=_amount_to_number(h, _date_value_for_sheet(h, merged[h])))
                         updated = True
                         break
                 if not updated:
