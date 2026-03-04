@@ -335,20 +335,20 @@ def api_get_data(name):
                 if not is_empty:
                     # accident 등 데이터 조작에 필요한 엑셀 실제 열 번호 (0-based)
                     row_dict['_fileRowIndex'] = file_row_index
+                    data_rows.append(row_dict)
                     empty_streak = 0
                 else:
                     empty_streak += 1
                     if empty_streak > 50:
                         break  # 연속 빈 행 50개 초과 시 조기 종료
 
-                data_rows.append(row_dict)
                 file_row_index += 1
 
             wb.close()
             return jsonify({
                 "headers": headers,
-                # 완전 빈 행 걸러내기
-                "rows": [r for r in data_rows if any(v is not None and str(v).strip() != '' for k, v in r.items() if k != '_fileRowIndex')]
+                # 중복 필터링 제거 (이미 append 단계에서 걸렀으므로)
+                "rows": data_rows
             })
     except Exception as e:
         logging.exception(f"Error reading {name} data")
