@@ -378,21 +378,25 @@ def api_information():
                 row_dict['피연락처'] = ''
                 row_dict['피직업'] = ''
 
-            # 중복 체크 (계약자명 + 주민번호)
+            # 중복 체크 (계약자명 + 주민번호 + 피보험자명)
             if action in ('insert', 'update'):
                 name_idx = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
                 jumin_idx = next((i for i, h in enumerate(headers) if h == '주민번호'), None)
-                if name_idx is not None and jumin_idx is not None:
+                pi_idx = next((i for i, h in enumerate(headers) if h == '피보험자명'), None)
+                if name_idx is not None and jumin_idx is not None and pi_idx is not None:
                     check_name = ky_name
                     check_jumin = normalize_jumin(row_dict.get('주민번호'))
+                    check_pi = pi_name
                     target_excel_row = (2 + int(row_index)) if (action == 'update' and row_index is not None) else -1
                     
                     for r in range(2, _get_real_max_row(ws) + 1):
                         if r == target_excel_row: continue
                         ex_n = str(ws.cell(row=r, column=name_idx + 1).value or '').strip()
                         ex_j = normalize_jumin(ws.cell(row=r, column=jumin_idx + 1).value)
-                        if ex_n == check_name and ex_j == check_jumin:
-                            return jsonify({'ok': False, 'error': f'이미 등록된 계약자입니다. ({check_name} / {row_dict.get("주민번호")})'}), 400
+                        ex_p = str(ws.cell(row=r, column=pi_idx + 1).value or '').strip()
+                        if ex_n == check_name and ex_j == check_jumin and ex_p == check_pi:
+                            msg = f'이미 등록된 계약입니다. ({check_name} / {row_dict.get("주민번호")} / 피:{check_pi})'
+                            return jsonify({'ok': False, 'error': msg}), 400
 
             if action == 'delete':
                 if row_index is None:
@@ -447,6 +451,26 @@ def api_insurance():
             def row_matches(r):
                 return str(r.get('계약자명') or '').strip() == key_name and \
                        normalize_jumin(r.get('주민번호') or r.get('주민등록번호')) == key_jumin
+
+            # 중복 체크 (계약자명 + 주민번호 + 증권번호)
+            if action in ('insert', 'update'):
+                 target_file_row = int(data.get('fileRowIndex')) if (action == 'update' and 'fileRowIndex' in data) else -1
+                 check_no = str(row_dict.get('증권번호') or '').strip()
+                 check_n = str(row_dict.get('계약자명') or '').strip()
+                 check_j = normalize_jumin(row_dict.get('주민번호'))
+                 
+                 n_idx = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
+                 j_idx = next((i for i, h in enumerate(headers) if h == '주민번호'), None)
+                 no_idx = next((i for i, h in enumerate(headers) if h == '증권번호'), None)
+                 
+                 if n_idx is not None and j_idx is not None and no_idx is not None:
+                     for r in range(2, _get_real_max_row(ws) + 1):
+                         if (r - 2) == target_file_row: continue
+                         ex_n = str(ws.cell(row=r, column=n_idx + 1).value or '').strip()
+                         ex_j = normalize_jumin(ws.cell(row=r, column=j_idx + 1).value)
+                         ex_no = str(ws.cell(row=r, column=no_idx + 1).value or '').strip()
+                         if ex_n == check_n and ex_j == check_j and ex_no == check_no:
+                             return jsonify({'ok': False, 'error': f'이미 등록된 증권번호입니다. ({check_no})'}), 400
 
             if action == 'delete':
                 if 'fileRowIndex' in data:
