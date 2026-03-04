@@ -484,6 +484,16 @@ def api_insurance():
             # 중복 체크 (계약자명 + 주민번호 + 증권번호)
             if action in ('insert', 'update'):
                  target_file_row = int(data.get('fileRowIndex')) if (action == 'update' and 'fileRowIndex' in data) else -1
+                 
+                 # 만약 update 이고 fileRowIndex 가 없다면, 현재 어떤 줄이 매치되는지 먼저 찾아야 함 (자기 자신 중복 체크 방지)
+                 if action == 'update' and target_file_row == -1:
+                     for r in range(2, _get_real_max_row(ws) + 1):
+                         # row_matches 는 name/jumin 으로 찾음
+                         test_row_obj = {h: ws.cell(row=r, column=c).value for c, h in enumerate(headers, 1)}
+                         if row_matches(test_row_obj):
+                             target_file_row = r - 2
+                             break
+
                  check_no = str(row_dict.get('증권번호') or '').strip()
                  check_n = str(row_dict.get('계약자명') or '').strip()
                  check_j = normalize_jumin(row_dict.get('주민번호'))
