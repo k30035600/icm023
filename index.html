@@ -4305,9 +4305,7 @@
         }
 
         if (actionName === 'restore') {
-          var confirmRestore = window.confirm('백업받았던 압축 파일(ZIP)을 업로드하여 엑셀 데이터를 복원하시겠습니까?\\n(현재 엑셀 데이터가 삭제되고 복원본으로 덮어씌워집니다.)');
-          if (!confirmRestore) return;
-          // 파일 선택창 띄우기
+          // 비밀번호 확인 후 바로 파일 선택창 띄우기
           fileInput.value = '';
           fileInput.click();
           return;
@@ -4360,6 +4358,12 @@
       fileInput.addEventListener('change', function (e) {
         var file = e.target.files[0];
         if (!file) return;
+
+        var confirmMsg = '[' + file.name + '] 파일을 사용하여 복원하시겠습니까?\n서버의 현재 엑셀 데이터가 삭제되고 이 파일로 모두 대체됩니다.';
+        if (!window.confirm(confirmMsg)) {
+          fileInput.value = '';
+          return;
+        }
 
         var pwd = inputPwd ? inputPwd.value : '';
         var formData = new FormData();
