@@ -378,6 +378,22 @@ def api_information():
                 row_dict['피연락처'] = ''
                 row_dict['피직업'] = ''
 
+            # 중복 체크 (계약자명 + 주민번호)
+            if action in ('insert', 'update'):
+                name_idx = next((i for i, h in enumerate(headers) if h == '계약자명'), None)
+                jumin_idx = next((i for i, h in enumerate(headers) if h == '주민번호'), None)
+                if name_idx is not None and jumin_idx is not None:
+                    check_name = ky_name
+                    check_jumin = normalize_jumin(row_dict.get('주민번호'))
+                    target_excel_row = (2 + int(row_index)) if (action == 'update' and row_index is not None) else -1
+                    
+                    for r in range(2, _get_real_max_row(ws) + 1):
+                        if r == target_excel_row: continue
+                        ex_n = str(ws.cell(row=r, column=name_idx + 1).value or '').strip()
+                        ex_j = normalize_jumin(ws.cell(row=r, column=jumin_idx + 1).value)
+                        if ex_n == check_name and ex_j == check_jumin:
+                            return jsonify({'ok': False, 'error': f'이미 등록된 계약자입니다. ({check_name} / {row_dict.get("주민번호")})'}), 400
+
             if action == 'delete':
                 if row_index is None:
                     return jsonify({'ok': False, 'error': '삭제 시 rowIndex 필요'}), 400
