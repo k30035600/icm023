@@ -2959,6 +2959,51 @@
           if (mode !== '입력' && mode !== '수정' && mode !== '삭제') return;
           var row = getDetailFormRow();
 
+          // 유효성 검사 (입력/수정 모드)
+          if (mode === '입력' || mode === '수정') {
+            // 주민번호 날짜 검사
+            var validateJuminDate = function (val, label) {
+              if (!val) return true;
+              var d = val.replace(/\D/g, '').slice(0, 6);
+              if (d.length < 6) return true; // 형식이 안 갖춰진 경우 건너뜀 (이미 마스킹 등에서 처리함)
+              var yy = parseInt(d.slice(0, 2), 10);
+              var mm = parseInt(d.slice(2, 4), 10);
+              var dd = parseInt(d.slice(4, 6), 10);
+              if (mm < 1 || mm > 12) return false;
+              var century = (yy < 50) ? 2000 : 1900;
+              var lastDay = new Date(century + yy, mm, 0).getDate();
+              return dd >= 1 && dd <= lastDay;
+            };
+
+            var j = row['주민번호'] || '';
+            if (!validateJuminDate(j, '주민번호')) {
+              alert('주민번호의 생년월일(앞 6자리)이 올바른 날짜가 아닙니다.');
+              var jInp = document.getElementById('jumin-input');
+              if (jInp) jInp.focus();
+              return;
+            }
+            var pj = row['피주민번호'] || '';
+            if (pj && !validateJuminDate(pj, '피주민번호')) {
+              alert('피보험자 주민번호의 생년월일(앞 6자리)이 올바른 날짜가 아닙니다.');
+              var pjInp = document.getElementById('pjumin-input');
+              if (pjInp) pjInp.focus();
+              return;
+            }
+
+            // 증권번호 연도 검사 (앞 4자리)
+            var sNum = (row['증권번호'] || '').replace(/\D/g, '');
+            if (sNum && sNum.length >= 4) {
+              var yyyy = parseInt(sNum.slice(0, 4), 10);
+              if (isNaN(yyyy) || yyyy < 1900 || yyyy > 2100) {
+                alert('증권번호의 시작(앞 4자리)은 올바른 연도(YYYY)여야 합니다.');
+                var sInp = document.querySelector('.detail-form [data-field="증권번호"]');
+                if (sInp) sInp.focus();
+                return;
+              }
+            }
+          }
+
+
           // 입력 모드: 동의/부동의 유효성 검사
           if (mode === '입력') {
             var agreeC = document.getElementById('detail-db-agree');
