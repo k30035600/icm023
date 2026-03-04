@@ -2321,7 +2321,7 @@
 
     // /api/data/information 호출 후 info-table 파싱
     function tryAutoLoadInfo() {
-      fetch('/api/data/information')
+      return fetch('/api/data/information')
         .then(function (r) { return r.json(); })
         .then(function (data) {
           try {
@@ -2337,7 +2337,7 @@
     // 서버에서 insurance 데이터 가져오기
     window._insuranceData = null;
     function tryAutoLoadInsurance() {
-      fetch('/api/data/insurance')
+      return fetch('/api/data/insurance')
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data || !data.headers) return;
@@ -2365,7 +2365,7 @@
     // 서버에서 counsel 데이터 가져오기 (계약자명/주민번호 기준 counsel 테이블·대화상자)
     window._counselData = null;
     function tryAutoLoadCounsel() {
-      fetch('/api/data/counsel')
+      return fetch('/api/data/counsel')
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data || !data.headers) return;
@@ -2956,17 +2956,33 @@
             return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json(); });
           };
           var done = function (clearForm) {
-            if (typeof tryAutoLoadInfo === 'function') tryAutoLoadInfo();
-            if (typeof tryAutoLoadInsurance === 'function') tryAutoLoadInsurance();
-            if (typeof tryAutoLoadAccident === 'function') tryAutoLoadAccident();
-            if (typeof tryAutoLoadCounsel === 'function') tryAutoLoadCounsel();
-            if (modeSel) modeSel.value = '조회';
-            setCompleteBtnEnabled('조회');
-            setDetailFormSectionsEnabled(false);
-            if (clearForm) {
-              if (typeof clearDetailForm === 'function') clearDetailForm();
-              window._selectedInfoRowIndex = null;
-            }
+            var loaders = [
+              typeof tryAutoLoadInfo === 'function' ? tryAutoLoadInfo() : Promise.resolve(),
+              typeof tryAutoLoadInsurance === 'function' ? tryAutoLoadInsurance() : Promise.resolve(),
+              typeof tryAutoLoadAccident === 'function' ? tryAutoLoadAccident() : Promise.resolve(),
+              typeof tryAutoLoadCounsel === 'function' ? tryAutoLoadCounsel() : Promise.resolve()
+            ];
+            Promise.all(loaders).then(function () {
+              if (modeSel) modeSel.value = '조회';
+              setCompleteBtnEnabled('조회');
+              setDetailFormSectionsEnabled(false);
+              if (clearForm) {
+                if (typeof clearDetailForm === 'function') clearDetailForm();
+                window._selectedInfoRowIndex = null;
+                // 하단 테이블들 초기화
+                var ph = '<div class="placeholder">information에서 행을 선택하면 데이터가 출력됩니다.</div>';
+                var phC = '<div class="counsel-empty-text">과거 상담 내용이 없습니다.</div>';
+                if (document.getElementById('insurance-table')) document.getElementById('insurance-table').innerHTML = ph;
+                if (document.getElementById('accident-table')) document.getElementById('accident-table').innerHTML = ph;
+                if (document.getElementById('counsel-past-messages')) document.getElementById('counsel-past-messages').innerHTML = phC;
+                if (typeof updateCounselTodayChat === 'function') updateCounselTodayChat();
+              } else if (window._selectedInfoRowIndex != null) {
+                // 현재 선택된 행이 있다면 전체 다시 그리기
+                if (typeof window._onInfoRowClick === 'function') {
+                  window._onInfoRowClick(window._selectedInfoRowIndex);
+                }
+              }
+            });
           };
           var fail = function (msg) {
             alert(msg || '저장 실패. 서버(app.py)를 실행했는지 확인하세요.');
@@ -3005,7 +3021,7 @@
             });
             run('/api/information', { action: 'update', rowIndex: rowIndex, row: infoRow })
               .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); return run('/api/insurance', { action: 'update', key: key, row: rowForInsurance }); })
-              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(true); })
+              .then(function (res) { if (!res || !res.ok) throw new Error(res && res.error); done(false); })
               .catch(function (e) { fail(e && e.message); });
           } else {
             // 입력 모드
