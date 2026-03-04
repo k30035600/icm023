@@ -2159,6 +2159,7 @@
           });
           uniqueVals.sort();
 
+          var currentVal = window._infoTableFilters[h] || '전체';
           var selHtml = '<select class="info-header-select" data-header="' + h + '" style="width:100% !important; font-size:10px; padding:0; height:18px; box-sizing:border-box;">';
           selHtml += '<option value="전체"' + (currentVal === '전체' ? ' selected' : '') + '>' + h + '</option>';
           uniqueVals.forEach(function (uv) {
