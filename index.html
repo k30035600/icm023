@@ -1487,6 +1487,16 @@
       font-size: 14px !important;
       font-weight: bold !important;
     }
+
+    .info-header-select {
+      font-size: 11px !important;
+      /* 헤더 드롭다운은 작게 유지 */
+      font-weight: bold !important;
+      background: #f8f9fa;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      cursor: pointer;
+    }
   </style>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -1509,12 +1519,8 @@
     </span>
     <div class="header-btns" style="display: flex; align-items: center; gap: 0.5rem;">
       <label class="header-checkbox"><input type="checkbox" id="info-exclude-enddate" /> 종료일자 제외</label>
-      <select id="info-agree-filter"
-        style="height: 28px; padding: 2px 4px !important; font-size: 11px; border-radius: 4px; box-sizing: border-box;">
-        <option value="전체">전체</option>
-        <option value="동의">동의</option>
-        <option value="비동의">비동의</option>
-      </select>
+      <button type="button" id="id-reset-filters"
+        style="height:28px; padding:2px 6px; font-size:11px; margin-left:5px;">필터초기화</button>
       <button type="button" id="btn-assign-data">배정자료</button>
     </div>
   </header>
@@ -2070,23 +2076,34 @@
       var excludeChk = document.getElementById('info-exclude-enddate');
       var excludeChecked = excludeChk && excludeChk.checked;
       var agreeFilter = document.getElementById('info-agree-filter');
-      var agreeVal = agreeFilter ? agreeFilter.value : '전체';
-      var colEnddate = headers.indexOf('종료일자');
-      var colAgree = headers.indexOf('문자전송');
+      var agreeValFromHeader = agreeFilter ? agreeFilter.value : '전체';
+
+      var colEnddateIdx = headers.indexOf('종료일자');
       var indices = rows.map(function (_, i) { return i; });
-      if (excludeChecked && colEnddate !== -1) {
+
+      // 1. 기본 필터 (종료일자 제외)
+      if (excludeChecked && colEnddateIdx !== -1) {
         indices = indices.filter(function (i) {
-          var v = rows[i][colEnddate];
+          var v = rows[i][colEnddateIdx];
           return v == null || v === '' || (typeof v === 'string' && v.trim() === '');
         });
       }
-      if (agreeVal !== '전체' && colAgree !== -1) {
-        indices = indices.filter(function (i) {
-          var v = (rows[i][colAgree] != null ? String(rows[i][colAgree]) : '').trim();
-          if (agreeVal === '동의') return v === '동의';
-          return v === '비동의' || v === '부동의';
-        });
-      }
+
+      // 2. 드롭다운 필터 (문자전송/DB종류/계약자명/피보험자/연락처)
+      var filterCols = ['문자전송', 'DB종류', '계약자명', '피보험자', '연락처'];
+      filterCols.forEach(function (hName) {
+        var targetVal = window._infoTableFilters[hName];
+        if (targetVal && targetVal !== '전체') {
+          var hIdx = headers.indexOf(hName);
+          if (hName === '피보험자' && hIdx === -1) hIdx = headers.indexOf('피보험자명');
+          if (hIdx !== -1) {
+            indices = indices.filter(function (i) {
+              return String(rows[i][hIdx] || '').trim() === targetVal;
+            });
+          }
+        }
+      });
+
       // 너비 비율(Weight) 및 헤더별 인덱스 준비
       var displayHeaders = INFO_DISPLAY_HEADERS;
       var weights = displayHeaders.map(function (h) { return INFO_COL_WEIGHTS[h] != null ? INFO_COL_WEIGHTS[h] : INFO_COL_DEFAULT_WEIGHT; });
@@ -2097,6 +2114,7 @@
         var searchName = name === '종료' ? '종료일자' : name;
         var idx = headers.indexOf(searchName);
         if (searchName === '주민번호' && idx === -1) idx = headers.indexOf('주민등록번호');
+        if (searchName === '피보험자' && idx === -1) idx = headers.indexOf('피보험자명');
         return idx;
       });
 
@@ -2108,7 +2126,30 @@
       html += '</colgroup><thead><tr>';
       displayHeaders.forEach(function (h, i) {
         var align = aligns[i] || 'left';
-        html += '<th style="text-align:' + align + '">' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
+        var isFilterCol = filterCols.indexOf(h) !== -1;
+        if (isFilterCol) {
+          var hIdx = headers.indexOf(h === '피보험자' ? '피보험자명' : h);
+          if (hIdx === -1 && h === '피보험자') hIdx = headers.indexOf('피보험자');
+
+          // 고유값 추출 (전체 데이터 기준)
+          var uniqueVals = [];
+          rows.forEach(function (r) {
+            var v = String(r[hIdx] || '').trim();
+            if (v && uniqueVals.indexOf(v) === -1) uniqueVals.push(v);
+          });
+          uniqueVals.sort();
+
+          var currentVal = window._infoTableFilters[h] || '전체';
+          var selHtml = '<select class="info-header-select" data-header="' + h + '" style="width:100%; font-size:10px; padding:0; height:18px;">';
+          selHtml += '<option value="전체"' + (currentVal === '전체' ? ' selected' : '') + '>' + h + '</option>';
+          uniqueVals.forEach(function (uv) {
+            selHtml += '<option value="' + uv + '"' + (currentVal === uv ? ' selected' : '') + '>' + uv + '</option>';
+          });
+          selHtml += '</select>';
+          html += '<th style="text-align:' + align + '; padding: 0 1px;">' + selHtml + '</th>';
+        } else {
+          html += '<th style="text-align:' + align + '">' + (h != null ? String(h).replace(/</g, '&lt;') : '') + '</th>';
+        }
       });
       html += '</tr></thead><tbody>';
 
@@ -2149,6 +2190,16 @@
       });
       html += '</tbody></table>';
       el.innerHTML = html;
+
+      // 이벤트 바인딩
+      el.querySelectorAll('.info-header-select').forEach(function (sel) {
+        sel.addEventListener('change', function (e) {
+          window._infoTableFilters[this.dataset.header] = this.value;
+          refreshInfoTableDisplay();
+        });
+        sel.addEventListener('click', function (e) { e.stopPropagation(); });
+      });
+
       if (typeof window.syncCounselHeightToLeft === 'function') {
         requestAnimationFrame(function () { window.syncCounselHeightToLeft(); });
       }
@@ -2431,6 +2482,7 @@
 
       return s.replace(/</g, '&lt;');
     }
+    window._infoTableFilters = {}; // 헤더 드롭다운 필터 상태
     window._formatAccidentCell = formatAccidentCell;
     // accident 테이블 컬럼 너비 비율: 1열 8, 2열 84, 3열 8, 나머지 8 (합으로 정규화)
     var accidentColWeights = [8, 84, 8];
@@ -4325,6 +4377,16 @@
 
 
       // 초기모드를 입력으로 세팅 (모든 필드 활성화 포함)
+      var btnReset = document.getElementById('id-reset-filters');
+      if (btnReset) {
+        btnReset.addEventListener('click', function () {
+          window._infoTableFilters = {};
+          var ex = document.getElementById('info-exclude-enddate');
+          if (ex) ex.checked = false;
+          refreshInfoTableDisplay();
+        });
+      }
+
       window.addEventListener('DOMContentLoaded', function () {
         var modeSel = document.getElementById('detail-mode');
         if (modeSel) {
@@ -4339,7 +4401,7 @@
             var el = document.getElementById('server-boot-time');
             if (el && data.boot_time) el.textContent = data.boot_time;
           })
-          .catch(function (e) { console.error('서버 기동 시간을 불러오는 중 오류 발생:', e); });
+          .catch(function (e) { });
       });
     })();
   </script>
